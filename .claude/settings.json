@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "deny": [
+      "mcp__mt5__place_market_order",
+      "mcp__mt5__close_position"
+    ]
+  }
+}
