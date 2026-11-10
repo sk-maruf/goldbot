@@ -36,7 +36,7 @@ C. Guardian and time
 12. "Latest tick time" used as current server time; wall clock used for durations (TIME-*)
 D. Cent account and research
 13. USD/USC or standard/cent lot confusion; numbers not labelled ILLUSTRATIVE/VERIFIED (CENT-*)
-14. Candle backtests presented as execution simulation; T-tiers mixed (BT-001/002/032)
+14. Candle backtests presented as execution simulation; PT tiers mixed (BT-001/002/032)
 15. Statistical claims beyond what the sample supports; thresholds changed post hoc (RES-*)
 16. Strategy switching on recent performance (RES-060)
 E. Security, privacy, MCP

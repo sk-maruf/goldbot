@@ -21,7 +21,7 @@
 | A-06 | `volume_min`, `volume_step`, `volume_max` of the cent symbol | **BLOCKED** | — | `symbol_info()` | M2 | Feasibility and rejection rate |
 | A-07 | Stops level and freeze level | **BLOCKED** | — | `symbol_info()` | M2 | SL validity (RISK-032) |
 | A-08 | Commission on Standard Cent gold | **BLOCKED** | — | `history_deals_get` commission/fee on first deals (CENT-006) | M7 (demo, Standard) / M10 (cent) | Backtest costs (placeholder until then) |
-| A-09 | Swap values and whether the account is swap-free | **BLOCKED / OPEN** | S3 says automatic swap-free applies to accounts registered in Islamic countries | `symbol_info()` swap fields + the user checks the Personal Area for conditions (OPEN Q9) | M0/M2 | Cost model; overnight holds |
+| A-09 | Swap values and whether the account is swap-free | **BLOCKED / OPEN** | S3 says automatic swap-free applies to accounts registered in Islamic countries | `symbol_info()` swap fields + the user checks the Personal Area for conditions (OPEN, kickoff question 6) | M0/M2 | Cost model; overnight holds |
 | A-10 | Triple swap on Wednesday for metals | VERIFIED-DOC, LIVE CHECK | S2, S3 | `swap_rollover3days` | M2 | Minor |
 | A-11 | Gold trading hours Sun 22:05 – Fri 20:58, daily break 20:58–22:01, server time GMT+0 | VERIFIED-DOC, LIVE CHECK | S2 | Guardian session export (CENT-005) | M2 | Blackouts (P-19) |
 | A-12 | Swap charged at 21:00 GMT+0 (summer) / 22:00 (winter) | VERIFIED-DOC, LIVE CHECK | S3 | Session export + deals | M2/M7 | Rollover timing in the backtester |
@@ -90,7 +90,7 @@
 | A-69 | The Fibonacci anchoring rules and the 33 chart-pattern geometries in `MARKET_INTELLIGENCE_SPEC.md` Part II are engineering definitions with research defaults; results apply only to the rules as written | ASSUMPTION | None needed; every rule is documented and versioned (MI-012) | M6c |
 | A-70 | At the cent minimum lot the stops level, freeze level and spread leave room for trailing and break-even modifications at the MI-172 minimum step; partial exits are infeasible at the minimum volume | **UNKNOWN** | Measure stops and freeze levels and spread in S0 and M2 discovery; MI-174 records `PARTIAL_INFEASIBLE`; the MI-175 backtests use the measured values | S0/M6e |
 
-## 5. User decision register (D-01..D-12) — none decided as of 2026-11-08
+## 5. User decision register (D-01..D-12) — none decided as of 2026-11-10
 
 Pending decisions are **never** filled in by Claude Code (CLAUDE.md §3.22). Until each is decided,
 tests and fixture-demo runs (RISK-066) use labelled fixture values (TRADING_RISK_SPEC §2), and LIVE

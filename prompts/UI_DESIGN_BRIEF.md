@@ -4,6 +4,14 @@
 > designer skill and `frontend-design`. HIG principles: **clarity, deference, depth**. The art
 > defers to the data. V2 keeps the V1 aesthetic and adds the safety and status layer it was missing.
 > **Readability always wins over aesthetics** (UI-001).
+>
+> **Visual direction superseded (user decision, 2026-11-10; `docs/STATUS.md`,
+> `quality/V1_V2_CHANGELOG.md` CH-89).** The look now follows `Inspiration.jpg`: near-black green
+> background, lime primary accent, cyan/teal secondary, glass panels with thin luminous borders,
+> outline icons, dark theme first. This replaces the watercolor washes in §1 and the colour values
+> in §7. Every numbered rule (UI-001..UI-032) still applies: data panels ≥ 85% opaque, the blur
+> budget, AA contrast, never colour alone, original art only, and no pulsing or animation unless it
+> is a real safety state. The brand lime is never the `HEALTHY` or profit colour token.
 
 ## 1. The idea
 

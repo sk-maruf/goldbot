@@ -49,7 +49,7 @@ You are the builder for GoldBot milestone <MN>. CLAUDE.md is binding.
 4. TDD: the required tests fail first, then you implement until they pass. Never weaken a test.
 5. Use the installed skills per CLAUDE.md §4 and report which ones actually ran.
 6. Never fabricate data, specs or results. Unknowns → ASSUMPTIONS_AND_UNKNOWNS.md as BLOCKED.
-7. Finish with: test/lint/type results; changed files; requirement IDs moved to IMPLEMENTED or
+7. Finish with: test/lint/type results; changed files; requirement IDs moved to TEST_REQUIRED or
    VERIFIED in quality/REQUIREMENTS_TRACEABILITY.md (with the evidence); spec deviations;
    docs/STATUS.md and CHANGELOG.md updated; "HOW COULD THIS FAIL?" for this milestone. Then stop.
 ```

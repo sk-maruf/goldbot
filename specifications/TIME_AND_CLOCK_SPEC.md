@@ -67,7 +67,7 @@
 
 ## 6. Broker server time (C4)
 
-- **TIME-030** On every heartbeat (P-20 cadence) the Guardian exports `TimeTradeServer()`,
+- **TIME-030** On every Guardian heartbeat (every 5 s, GRD-011) the Guardian exports `TimeTradeServer()`,
   `TimeGMT()`, `TimeCurrent()`, `TimeLocal()` and `GetTickCount64()`.
   `server_offset = TimeTradeServer() − TimeGMT()`, rounded to the nearest 15 minutes. The engine
   accepts a new offset only if two consecutive estimates agree within P-17. A change of offset is

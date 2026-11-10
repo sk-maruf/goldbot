@@ -65,3 +65,6 @@ Specification files cite sources as `[S#]`.
 3. Where S10 ("UTC without the shift") conflicts with widely reported practice (epoch values
    that represent broker wall-clock time), V2 does not assume either reading. M2 measures it
    (TIME-005).
+4. **M0a re-check, 2026-11-10.** S2, S3, S4 and S5 answered an automated browser with a bot check
+   (HTTP 403), and S10 with HTTP 404. Nothing was re-verified. The statuses and access dates in
+   the table are unchanged; the user can open these pages in a normal browser to re-check them.

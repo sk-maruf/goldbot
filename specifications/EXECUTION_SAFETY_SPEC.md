@@ -78,7 +78,7 @@ CONFIRMED / PARTIALLY_FILLED ─SL missing or wrong─► CONFIRMED_UNPROTECTED 
 
 - **EXE-020** Fields: `action`, `symbol`, `volume` (quantized, RISK-022), `type`, `price`
   (current executable side), `sl` (mandatory), `tp` (optional), `deviation` (P-14), `magic`
-  (`MAGIC_ENGINE`), `comment` (`GB:` + 10-char base32 prefix of `intent_id`), `type_time` GTC,
+  (`MAGIC_ENGINE`), `comment` (`GB:` + 10-char base32 prefix of `op_id`), `type_time` GTC,
   `type_filling` chosen from the symbol's `filling_mode` flags [VERIFIED S13]. Retcode 10030
   (invalid fill) is a configuration defect: ENTRY_STOP and alert.
 - **EXE-021** Comment-field length and preservation by the broker are [BLOCKED: verify in M7].

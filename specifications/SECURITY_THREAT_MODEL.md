@@ -65,7 +65,8 @@
 - **SEC-021** Approval tokens: HMAC over `sha256(proposal)` + nonce + expiry; single-use; bound to the
   session and the user (API-031).
 - **SEC-022** Audit log append-only with a SHA-256 hash chain. `verify_chain()` runs daily, and the
-  daily export goes off-box (encrypted, PRV-030).
+  daily export is written locally, encrypted (PRV-030). It goes off-box only when the user enabled
+  off-box backups (`PRIVACY_POLICY.md` §5, off by default).
 - **SEC-023** Commands (approve, mode change, emergency, clear) are re-validated by the engine
   regardless of what the API checked (API-020).
 
@@ -94,7 +95,7 @@
 | TM-10 | Tampering with Guardian files | IPC | L | H | SHA-256 integrity + seq + instance + folder ACL check (GRD-008); Guardian hard limits as user-set inputs that files can only tighten (GRD-002/003); kill-flag clearing only by user re-arm (GRD-016) | M against same-user malware (see TM-07); L otherwise |
 | TM-11 | Replay of an approval or command | API | M | H | Nonce + single use + expiry + proposal hash binding (API-031) | L |
 | TM-12 | Approval forgery / UI redress (clickjacking) | Web | L | H | `frame-ancestors 'none'`; hold-to-confirm; re-auth for mode/clear (API-033) | L |
-| TM-13 | Log tampering to hide actions | Audit | L | M | Hash chain + daily off-box export (SEC-022) | L |
+| TM-13 | Log tampering to hide actions | Audit | L | M | Hash chain + daily encrypted export, off-box only when the user enabled it (SEC-022) | L with the off-box export enabled; M by default, because a same-user process could rewrite the local chain and the local export together (TM-07) |
 | TM-14 | Data exfiltration via the LLM provider | LLM | M | M | Minimum data, no identifiers (PRV-020/021), disabled by default | L–M depending on provider terms |
 | TM-15 | Privilege escalation from `ui:read` / `mcp:read` to commands | API | L | H | Server-side scope checks per route; tests for every route × scope (API-040) | L |
 | TM-16 | Session hijacking | Web | L | H | HttpOnly, Secure (when TLS), SameSite=Strict, 30-min idle expiry, rotation on login (API-010) | L |

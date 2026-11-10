@@ -41,7 +41,7 @@
   stored as canonical JSON, and its SHA-256 is the **spec hash** (T10).
 - **CENT-005 Sessions.** The Python package has no session function [VERIFIED S9 function list].
   The Guardian exports `SymbolInfoSessionTrade` results for each weekday into
-  `guardian_sessions.json` (`GUARDIAN_SAFETY_SPEC.md` §8). The engine cross-checks them against
+  `guardian_sessions.json` (`GUARDIAN_SAFETY_SPEC.md` §3 and §11). The engine cross-checks them against
   the published hours [VERIFIED S2: XAU Sunday 22:05 – Friday 20:58, daily break 20:58–22:01,
   server time GMT+0]. A mismatch is logged; the **exported live sessions win**.
 - **CENT-006 Commission.** No `symbol_info` field reports commission. It is observed from

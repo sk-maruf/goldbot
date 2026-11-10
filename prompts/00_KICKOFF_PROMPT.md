@@ -43,7 +43,7 @@ a skill ran unless it did.
 
 ## 3. Re-verify external facts (no invention)
 
-For each item in `quality/ASSUMPTIONS_AND_UNKNOWNS.md` marked `REPORTED` or `VERIFY-DOC`, try to
+For each item in `quality/ASSUMPTIONS_AND_UNKNOWNS.md` marked `REPORTED` or `VERIFIED-DOC`, try to
 re-check it against the official source listed in `quality/SOURCES.md` (Exness, MQL5, MCP, Python).
 Record each result as VERIFIED (URL + access date), CHANGED (old → new value), or STILL
 UNVERIFIED. Items that need the live account stay `BLOCKED` until M2. Never fill a gap with a guess.

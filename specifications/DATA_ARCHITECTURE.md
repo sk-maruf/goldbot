@@ -16,7 +16,7 @@
 
 - **DATA-001 Single writer per table.** Cross-process writes happen only through the `commands`
   table (api → engine). The engine consumes commands and writes the results.
-- **DATA-002 IDs.** UUIDv7 for every record (time-ordered). `intent_id` doubles as the idempotency
+- **DATA-002 IDs.** UUIDv7 for every record (time-ordered). An order intent's `op_id` is the idempotency
   key (EXE-002).
 - **DATA-003 Timestamps.** UTC, timezone-aware, ms precision (TIME-011), plus the engine's monotonic
   sequence number for ordering within a process.
@@ -41,7 +41,7 @@
 | `proposals` | id, decision_id, proposal_hash, expires_mono, status | C2 | 7 y |
 | `approvals` | id, proposal_hash, nonce, user, ts, outcome | C2 | 7 y |
 | `order_intents` | op_id (UUIDv7, unique), action, volume, price, sl, tp, state (EXE §2, every transition timestamped), retcodes[], in_flight_lock, reconciliation evidence | C3 | 7 y |
-| `positions_ledger` | ticket, intent_id, magic, volume, open, sl, tp, state, reconciled_at | C3 | 7 y |
+| `positions_ledger` | ticket, op_id, magic, volume, open, sl, tp, state, reconciled_at | C3 | 7 y |
 | `deals` | deal ticket, position, volume, price, profit, commission, fee, swap | C3 | 7 y |
 | `limit_state` | day_start_equity, week_start_equity, hwm, consecutive_losses, ts | C3 | 7 y |
 | `trading_state_events` | ts, trigger T#, from, to, actor, reason | C2 | 7 y |

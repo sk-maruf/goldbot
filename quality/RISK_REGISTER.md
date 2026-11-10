@@ -19,7 +19,7 @@
 | R-12 | Host malware or credential theft | L | H | MEDIUM | AV alerts | SEC-010; investor password for reads; accepted residual TM-07 | U | TM-06/07 |
 | R-13 | Dependency compromise | L | H | MEDIUM | Audit failures | Lockfiles, audits, minimal deps | B | SEC-012 |
 | R-14 | MetaTrader5 package or terminal API changes | M | M | HIGH | Import/version errors | Pin the version; `mt5` tests on each upgrade | B | A-20 |
-| R-15 | Swap-free status conditions (fees or restrictions) | M | L | MEDIUM | Personal Area terms | User checks (Q9); cost model updated | U | A-09 |
+| R-15 | Swap-free status conditions (fees or restrictions) | M | L | MEDIUM | Personal Area terms | User checks (kickoff question 6); cost model updated | U | A-09 |
 | R-16 | Engine and Guardian conflict (double action) | L | M | MEDIUM | Duplicate modifications/closes in logs | Leases + check-then-act (GRD-050..052) | B | GRD-050 |
 | R-17 | Approval fatigue or a mistaken approval | M | M | HIGH | Fast approvals; rejected-after-approve trades | Full card numbers; expiry; hold-to-confirm; no external channels | U | UI-031 |
 | R-18 | Cost of LLM or other paid services exceeds any plausible profit | H | L | MEDIUM | Monthly cost vs P/L | LLM off by default; P-28 cap; local host only | U | LLM-004 |

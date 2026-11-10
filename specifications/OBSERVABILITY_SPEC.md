@@ -6,10 +6,11 @@
 ## 1. Structured logs
 
 - **OBS-010** JSON lines with: `ts_utc`, `mono_seq`, `level`, `component`, `env`, `event`,
-  `trace_id`, `intent_id`/`command_id` where relevant, and `details`. Secrets are redacted (SEC-004).
+  `trace_id`, `op_id`/`command_id` where relevant, and `details`. Secrets are redacted (SEC-004).
   Logs never contain the account login in clear (PRV-011).
 - **OBS-011** Levels: DEBUG (dev only), INFO, WARN, ERROR, CRITICAL. CRITICAL is reserved for safety
-  events (triggers T2–T4/T8/T15–T19, Guardian takeover, emergency FAILED, chain verification failure).
+  events: every trigger that `TRADING_RISK_SPEC.md` §7 marks CRITICAL, plus T2, T3 and T17, a Guardian
+  takeover, an emergency action ending `FAILED_DEADLINE`, and an audit-chain verification failure.
 
 ## 2. Metrics (stored in SQLite, shown in the System screen)
 

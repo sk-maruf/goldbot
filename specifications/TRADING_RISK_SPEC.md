@@ -296,7 +296,7 @@ pass continuously (RISK-052); `ACK` = needs a one-step user acknowledgement (TOT
 | T5 | Consecutive losses ≥ P-07 | MEDIUM | ENTRY_STOP | none | AUTO at the next UTC day (counter persists; resets only on a winning trade) | next UTC day | HC-1..10 |
 | T6 | Consecutive losses ≥ P-08 | HIGH | SUSPENDED | none | MANUAL | — | HC-1..10 |
 | T7 | Reconciliation mismatch that the reconciler cannot explain from deal history (EXE-051) | CRITICAL | ENTRY_STOP | none | MANUAL | — | HC-3 + all |
-| T8 | T7 unresolved > P-24 | CRITICAL | SUSPENDED | none | MANUAL | — | HC-1..10 |
+| T8 | T7 unresolved > 60 s (P-24) | CRITICAL | SUSPENDED | none | MANUAL | — | HC-1..10 |
 | T9 | Guardian heartbeat stale (no integrity failure) | HIGH | ENTRY_STOP | none | AUTO | Guardian HEALTHY for 60 s | HC-1..10 |
 | T10 | Symbol spec hash changed | HIGH | ENTRY_STOP | none | MANUAL (CENT-020 re-validation) | — | HC-6 + all |
 | T11 | Clock offset > P-16 entry-stop level, or NTP unreachable > 10 min | MEDIUM | ENTRY_STOP | none | AUTO | offset < warn level for 5 min | HC-1..10 |

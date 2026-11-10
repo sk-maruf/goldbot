@@ -25,7 +25,7 @@
 | C3 Confidential (personal financial) | Account login, server name, balance, equity, positions, trade history, P/L | SQLite (BitLocker volume) | Login **hashed**; amounts allowed | **No** identifiers; amounts only as % or R (PRV-020) | Yes, redacted (MCP-040) |
 | C4 Secret | Passwords, TOTP seed, session tokens, approval server key, `local_salt` versions, backup keys, MCP tokens, API keys | OS keyring only | **Never** | **Never** | **Never** |
 
-- **PRV-010** Each SQLite table and log field is tagged with its class in `DATA_ARCHITECTURE.md` §3.
+- **PRV-010** Each SQLite table and log field is tagged with its class in `DATA_ARCHITECTURE.md` §2.
 - **PRV-011** The account login appears in logs, audit payloads and exports only as
   `HMAC-SHA256(local_salt, login)[:12]` plus a `salt_version`.
 - **PRV-012 `local_salt` lifecycle.**

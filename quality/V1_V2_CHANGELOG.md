@@ -167,3 +167,25 @@ was not edited. Rows in §5 keep the old part names (M6c research, M6d selector)
 **Safety-restriction check for this upgrade:** no loosening. Where the command was looser than the
 pack (win probabilities, partial exits at the minimum lot, strategy selection by score, AUTO_ALL),
 the stricter rule applies (`quality/V2_2_ARCHITECTURE_REVIEW.md` §0).
+
+## 7. M0a contradiction fixes and UI direction (2026-11-10)
+
+Found by the kickoff §1 cross-file read in M0a. The user approved them in chat on 2026-11-10 (plan
+approval). No `P-xx` value changed.
+
+| # | Earlier text | Weakness | Correction | Reason | Development impact | Validation |
+|---|---|---|---|---|---|---|
+| CH-83 | SYSTEM_ARCHITECTURE §2 gave the emergency-action lifecycle as `REQUESTED → SUBMITTED → CONFIRMED / PARTIAL / FAILED / TIMED_OUT / BLOCKED_MARKET_CLOSED` | Disagreed with EXECUTION_SAFETY_SPEC §8 and UI-013 | §2 now uses the §8 states: `AUTHORIZED`, `FAILED_DEADLINE`, and the mandatory `RECONCILED` step | GOV-004: one vocabulary | The `EmergencyAction` schema has one state list | grep: no `TIMED_OUT` in `specifications/` |
+| CH-84 | The idempotency ID was `op_id` in EXE-002/014, MI-172 and `order_intents`, but `intent_id` in DATA-002, EXE-020, OBS-010 and `positions_ledger` | Two names for one ID | `op_id` everywhere | One name in schemas and logs | `OrderIntent` and `PositionState` schemas use `op_id` | grep: no `intent_id` in `specifications/` |
+| CH-85 | OBS-011 listed the CRITICAL triggers as T2–T4, T8, T15–T19 | Stale since T20–T27 were added; disagreed with the severity column of TRADING_RISK_SPEC §7 | OBS-011 = every trigger §7 marks CRITICAL, plus T2, T3, T17 and the non-trigger events (the stricter union). §7 itself is unchanged | CRITICAL alerts must cover T7 and T20–T26 | Alert mapping reads §7 | Test: every §7 CRITICAL trigger logs at CRITICAL |
+| CH-86 | SEC-022 said the daily audit export "goes off-box" | PRIVACY_POLICY §5 has off-box backups off by default (ADR-013); TM-13's residual relied on the export | The export is local and encrypted, and off-box only when the user enabled it; TM-13 states its residual for both cases | Honest residual risk | None | Review |
+| CH-87 | TIME-030 had the Guardian exporting clocks at "P-20 cadence" | P-20 is the engine's 2 s interval; the Guardian heartbeat is every 5 s (GRD-011) | TIME-030 cites the Guardian heartbeat (5 s, GRD-011) | Consistency; no Guardian behaviour changes | None | Review |
+| CH-88 | Stale references and labels in seven files | Wrong section numbers; a label and a status that do not exist | Kickoff §3 `VERIFY-DOC` → `VERIFIED-DOC`; A-09 and R-15 "Q9" → kickoff question 6; CENT-005 → GUARDIAN_SAFETY_SPEC §3 and §11; PRV-010 → DATA_ARCHITECTURE §2; ASSUMPTIONS §5 title date; T8 "unresolved > 60 s (P-24)"; 02 prompt "PT tiers"; 01 preamble `TEST_REQUIRED` (no `IMPLEMENTED` status exists) | Accuracy | None | Review |
+| CH-89 | UI brief: "Watercolor Glass" washes, "nothing glows" | The user supplied `Inspiration.jpg` and asked for its palette, glass look and icons | Visual direction: near-black green, lime primary, cyan/teal secondary, luminous-border glass panels, dark theme first. Every numbered UI rule (UI-001..UI-032) is unchanged | User decision 2026-11-10 | `docs/UI_SPEC.md` (M0c) and the M4 design gate use the new direction | M4 contrast report and design gate |
+
+The traceability rows that quote the changed text (DATA-002, OBS-010, OBS-011, SEC-022, TIME-030,
+CENT-005, PRV-010) were updated by hand. No requirement ID was added or removed.
+
+**Safety-restriction check for these fixes:** no loosening. CH-85 widens what counts as CRITICAL.
+CH-86 removes a claimed mitigation that the default configuration never had, and raises the stated
+residual risk to match.
