@@ -21,7 +21,7 @@
 | A-06 | `volume_min`, `volume_step`, `volume_max` of the cent symbol | **BLOCKED** | — | `symbol_info()` | M2 | Feasibility and rejection rate |
 | A-07 | Stops level and freeze level | **BLOCKED** | — | `symbol_info()` | M2 | SL validity (RISK-032) |
 | A-08 | Commission on Standard Cent gold | **BLOCKED** | — | `history_deals_get` commission/fee on first deals (CENT-006) | M7 (demo, Standard) / M10 (cent) | Backtest costs (placeholder until then) |
-| A-09 | Swap values and whether the account is swap-free | **BLOCKED / OPEN** | S3 says automatic swap-free applies to accounts registered in Islamic countries | `symbol_info()` swap fields + the user checks the Personal Area for conditions (OPEN, kickoff question 6) | M0/M2 | Cost model; overnight holds |
+| A-09 | Swap values and whether the account is swap-free | **BLOCKED** (user states swap-free, 2026-11-13; M2 verifies from MT5) | S3 says automatic swap-free applies to accounts registered in Islamic countries | `symbol_info()` swap fields + the user checks the Personal Area for conditions (OPEN, kickoff question 6) | M0/M2 | Cost model; overnight holds |
 | A-10 | Triple swap on Wednesday for metals | VERIFIED-DOC, LIVE CHECK | S2, S3 | `swap_rollover3days` | M2 | Minor |
 | A-11 | Gold trading hours Sun 22:05 – Fri 20:58, daily break 20:58–22:01, server time GMT+0 | VERIFIED-DOC, LIVE CHECK | S2 | Guardian session export (CENT-005) | M2 | Blackouts (P-19) |
 | A-12 | Swap charged at 21:00 GMT+0 (summer) / 22:00 (winter) | VERIFIED-DOC, LIVE CHECK | S3 | Session export + deals | M2/M7 | Rollover timing in the backtester |
@@ -71,8 +71,8 @@
 | A-43 | Latency/slippage/reject priors in BT-023/024/028 | ASSUMPTION | Replaced by M7 empirical distributions | M7 |
 | A-44 | Commission placeholder (0.5 × median spread per lot round trip) | ASSUMPTION | Replaced by A-08 | M7/M10 |
 | A-45 | News blackout −30/+15 min (P-18) | ASSUMPTION (conservative) | Review after M9 with blackout-window performance | M9 |
-| A-46 | `PROPOSED` engineering parameters (P-06, P-09..P-27, P-29, P-30, P-33, P-34) | OPEN (user approval) | M0 question 2 | M0 |
-| A-47 | Research thresholds A1–A10, applicability rules RES-023..026 and promotion gate RISK-063, and the market-intelligence defaults MI-042/MI-043 (minimum confluence, correlation groups) | OPEN (user approval) | M0 question 3 | M0 |
+| A-46 | `PROPOSED` engineering parameters (P-06, P-09..P-27, P-29, P-30, P-33, P-34) | APPROVED by the user 2026-11-13 as proposed (P-14 and P-13 component A stay BROKER_VERIFICATION_REQUIRED) | M0 question 2 | M0 |
+| A-47 | Research thresholds A1–A10, applicability rules RES-023..026 and promotion gate RISK-063, and the market-intelligence defaults MI-042/MI-043 (minimum confluence, correlation groups) | APPROVED by the user 2026-11-13 as proposed | M0 question 3 | M0 |
 
 ## 4. External, legal, privacy, tooling
 
@@ -89,9 +89,9 @@
 | A-68 | The SMC and candlestick rules in `MARKET_INTELLIGENCE_SPEC.md` §4 are engineering definitions; there is no single industry-standard definition, so results apply only to the rules as written | ASSUMPTION | None needed; every rule is documented and versioned (MI-012) | M6a |
 | A-69 | The Fibonacci anchoring rules and the 33 chart-pattern geometries in `MARKET_INTELLIGENCE_SPEC.md` Part II are engineering definitions with research defaults; results apply only to the rules as written | ASSUMPTION | None needed; every rule is documented and versioned (MI-012) | M6c |
 | A-70 | At the cent minimum lot the stops level, freeze level and spread leave room for trailing and break-even modifications at the MI-172 minimum step; partial exits are infeasible at the minimum volume | **UNKNOWN** | Measure stops and freeze levels and spread in S0 and M2 discovery; MI-174 records `PARTIAL_INFEASIBLE`; the MI-175 backtests use the measured values | S0/M6e |
-| A-71 | TRADING_RISK_SPEC.md names no RiskEngine reason code for rejections by EXP-004, EXP-005, EXP-006, P-27, a trading state other than ACTIVE, or an unknown action type (RISK-002); `schemas/risk_decision.schema.json` has a closed enum and cannot record them (found in the M0b review) | **BLOCKED** | User approves the code names as a spec change (TRADING_RISK_SPEC §11); no code is invented | M3 |
+| A-71 | TRADING_RISK_SPEC.md names no RiskEngine reason code for rejections by EXP-004, EXP-005, EXP-006, P-27, a trading state other than ACTIVE, or an unknown action type (RISK-002); `schemas/risk_decision.schema.json` has a closed enum and cannot record them (found in the M0b review) | RESOLVED 2026-11-13: the user approved `MARGIN_UTILISATION`, `FREE_MARGIN`, `STOP_OUT_DISTANCE`, `REWARD_RISK_BELOW_MIN`, `STATE_NOT_ACTIVE`, `UNKNOWN_ACTION` (CH-90) | User approves the code names as a spec change (TRADING_RISK_SPEC §11); no code is invented | M3 |
 
-## 5. User decision register (D-01..D-12) — none decided as of 2026-11-10
+## 5. User decision register (D-01..D-12) — D-08 pending; the rest decided 2026-11-13
 
 Pending decisions are **never** filled in by Claude Code (CLAUDE.md §3.22). Until each is decided,
 tests and fixture-demo runs (RISK-066) use labelled fixture values (TRADING_RISK_SPEC §2), and LIVE
@@ -99,18 +99,18 @@ entries stay blocked (RISK-005, RISK-065). Options and consequences are in the r
 
 | ID | Decision | Options | Consequences documented in | Blocks | Status |
 |---|---|---|---|---|---|
-| D-01 | Entry authorization mode (P-37). The user stated AUTO_ALL as the intended final mode on 2026-11-10; that is intent, not an approval (MI-162, RISK-092) | `MANUAL_APPROVAL` · `AUTO_ALL` · `AUTO_APPROVED_STRATEGIES`; optionally narrowed by schedule or conditions (RISK-067) | TRADING_RISK_SPEC §9 | LIVE entries; M9 scope; M10 | PENDING |
-| D-02 | Risk per trade (P-01) and strategy budgets (P-32) | Recommended 0.10–0.50% | TRADING_RISK_SPEC §2, CENT §6–7 | LIVE | PENDING |
-| D-03 | Daily loss (P-02), weekly loss (P-03) and maximum drawdown (P-04) interventions | Ranges in §2 | TRADING_RISK_SPEC §2, §8 | LIVE; Guardian inputs | PENDING |
-| D-04 | Maximum aggregate open risk (P-31) and maximum simultaneous positions (P-05), unless set by a validated strategy within P-31 | Ranges in §2 | TRADING_RISK_SPEC RISK-015, EXP-008 | LIVE | PENDING |
-| D-05 | Daily profit-target behaviour (P-35) | none / stop entries / reduce risk | TRADING_RISK_SPEC §2 | Nothing (no behaviour until decided) | PENDING |
-| D-06 | Consecutive-loss limits (P-07, P-08) and automatic risk reduction (P-36) | Ranges and options in §2; never an increase | TRADING_RISK_SPEC §2, §7 | LIVE | PENDING |
-| D-07 | Trading style: scalping, intraday or swing | Swing **conflicts** with the confirmed no-overnight rule (RES-072) and would require changing that decision | STRATEGY_RESEARCH_SPEC RES-072/073; MARKET_INTELLIGENCE_SPEC MI-053 (scalping) | Strategy selection | PENDING |
-| D-08 | Initial strategy selection | From M0 proposals (RES-073), drawn from the MI-050 strategy families | STRATEGY_RESEARCH_SPEC §10 | M6 focus | PENDING |
-| D-09 | One strategy or several | Several requires P-31 sizing and, for switching, a prevalidated selector (RES-061) | STRATEGY_RESEARCH_SPEC §9 | M6/M9 | PENDING |
-| D-10 | Rule-based, ML-assisted or hybrid | ML/hybrid = class C3 with purging, embargo and nested walk-forward (RES-023) | STRATEGY_RESEARCH_SPEC §5.1 | M6 scope | PENDING |
-| D-11 | May the system research new strategies? AI signal-generation permissions | An external AI service in the signal path conflicts with LLM-001/LLM-006; only a locally run, versioned, validated model (C3) is compatible | SYSTEM_ARCHITECTURE §9; STRATEGY_RESEARCH_SPEC §5.1 | M6/M8 | PENDING |
-| D-12 | Adaptive strategy-selection preferences | none / prevalidated selector (C4; MI-052, built in M6f) | STRATEGY_RESEARCH_SPEC RES-061 | Selector work | PENDING |
+| D-01 | Entry authorization mode (P-37). The user stated AUTO_ALL as the intended final mode on 2026-11-10; that is intent, not an approval (MI-162, RISK-092) | `MANUAL_APPROVAL` · `AUTO_ALL` · `AUTO_APPROVED_STRATEGIES`; optionally narrowed by schedule or conditions (RISK-067) | TRADING_RISK_SPEC §9 | LIVE entries; M9 scope; M10 | DECIDED 2026-11-13: `AUTO_ALL` |
+| D-02 | Risk per trade (P-01) and strategy budgets (P-32) | Recommended 0.10–0.50% | TRADING_RISK_SPEC §2, CENT §6–7 | LIVE | DECIDED 2026-11-13: P-01 0.25%, P-32 0.25% |
+| D-03 | Daily loss (P-02), weekly loss (P-03) and maximum drawdown (P-04) interventions | Ranges in §2 | TRADING_RISK_SPEC §2, §8 | LIVE; Guardian inputs | DECIDED 2026-11-13: P-02 1.00%, P-03 2.00%, P-04 5.00% |
+| D-04 | Maximum aggregate open risk (P-31) and maximum simultaneous positions (P-05), unless set by a validated strategy within P-31 | Ranges in §2 | TRADING_RISK_SPEC RISK-015, EXP-008 | LIVE | DECIDED 2026-11-13: P-31 0.25% (one full-risk position at a time); P-05 follows the strategy within P-31 |
+| D-05 | Daily profit-target behaviour (P-35) | none / stop entries / reduce risk | TRADING_RISK_SPEC §2 | Nothing (no behaviour until decided) | DECIDED 2026-11-13: none |
+| D-06 | Consecutive-loss limits (P-07, P-08) and automatic risk reduction (P-36) | Ranges and options in §2; never an increase | TRADING_RISK_SPEC §2, §7 | LIVE | DECIDED 2026-11-13: P-07 3, P-08 5, P-36 none |
+| D-07 | Trading style: scalping, intraday or swing | Swing **conflicts** with the confirmed no-overnight rule (RES-072) and would require changing that decision | STRATEGY_RESEARCH_SPEC RES-072/073; MARKET_INTELLIGENCE_SPEC MI-053 (scalping) | Strategy selection | DECIDED 2026-11-13: research both scalping and intraday; the edge verdict picks |
+| D-08 | Initial strategy selection | From M0 proposals (RES-073), drawn from the MI-050 strategy families | STRATEGY_RESEARCH_SPEC §10 | M6 focus | PENDING (M0c proposes candidates) |
+| D-09 | One strategy or several | Several requires P-31 sizing and, for switching, a prevalidated selector (RES-061) | STRATEGY_RESEARCH_SPEC §9 | M6/M9 | DECIDED 2026-11-13: several strategies, sharing the P-31 budget |
+| D-10 | Rule-based, ML-assisted or hybrid | ML/hybrid = class C3 with purging, embargo and nested walk-forward (RES-023) | STRATEGY_RESEARCH_SPEC §5.1 | M6 scope | DECIDED 2026-11-13: rule-based only (no model in the signal path) |
+| D-11 | May the system research new strategies? AI signal-generation permissions | An external AI service in the signal path conflicts with LLM-001/LLM-006; only a locally run, versioned, validated model (C3) is compatible | SYSTEM_ARCHITECTURE §9; STRATEGY_RESEARCH_SPEC §5.1 | M6/M8 | DECIDED 2026-11-13: the system may research and report new strategies (never deploys without approval); LLM disabled (P-28 = 0); no AI in signals |
+| D-12 | Adaptive strategy-selection preferences | none / prevalidated selector (C4; MI-052, built in M6f) | STRATEGY_RESEARCH_SPEC RES-061 | Selector work | DECIDED 2026-11-13: prevalidated selector (C4, built and validated in M6f) |
 
 **Verification tasks (not decisions):** Exness account confirmation, Standard Cent confirmation,
 actual MT5 symbol, account currency and the Windows MT5 environment are all verified live in M2

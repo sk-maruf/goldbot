@@ -1,6 +1,6 @@
 # ADR-012: Entry authorization mode
 
-Status: Pending user decision (D-01)
+Status: Accepted (user decision D-01, 2026-11-13: AUTO_ALL)
 
 ## Context
 
@@ -25,7 +25,11 @@ automatic to human approval. No narrowing rule exists until the user decides one
 
 ## Decision
 
-**Pending user decision.** No mode is chosen. Until the user decides:
+**`AUTO_ALL`**, decided by the user on 2026-11-13 (D-01; approval record in `config/risk_limits.yaml`,
+`docs/STATUS.md` §8). It authorises entries only for strategies that passed the promotion gate
+(RISK-063), in state ACTIVE and within every limit (TRADING_RISK_SPEC §9). The live-money gates of
+CLAUDE.md §3.17 still apply. The rules that applied before the approval, and still apply to any
+environment without an approval record:
 
 - In `LIVE`, and in `DEMO` outside fixture demo, the engine generates no entries (RISK-065), and it
   refuses to start while P-37 lacks an approval record (RISK-005).

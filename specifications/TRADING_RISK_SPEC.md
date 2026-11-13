@@ -22,7 +22,8 @@
     `evaluate_modification()`, which checks strategy rules, OFF_TICK (RISK-022), stops/freeze
     levels and compatibility with the session-close deadline (P-33), and records old and new values
     (RISK-034). Widening an SL is risk-increasing **and prohibited** (§10).
-  - Unknown action types are rejected.
+  - Unknown action types are rejected (`UNKNOWN_ACTION`). A risk-increasing action while the
+    effective trading state is not `ACTIVE` is rejected (`STATE_NOT_ACTIVE`).
 - **RISK-003 Determinism.** `evaluate()` is a pure function of `(proposal, account_snapshot,
   symbol_spec, market_snapshot, limits, limit_state, trading_state, clock_snapshot)`. It reads
   no clock and no global state. The same inputs always give the same `RiskDecision`.
@@ -68,7 +69,7 @@ requires editing `config/risk_limits.yaml`, restarting, and a logged confirmatio
 | P-24 | `reconciliation` | PROPOSED | every 5 s; unexplained mismatch → ENTRY_STOP; unresolved > 60 s → SUSPENDED | same | s | tighten | T7/T8. |
 | P-25 | `emergency_operation_timing` | PROPOSED | per-attempt timeout **5 s**; retry back-off **1, 2, 4, 8 s**; max **5** attempts; **global deadline 60 s** per emergency run. Worst case 5 × 5 + (1 + 2 + 4 + 8) = 40 s ≤ 60 s. No attempt starts if the remaining deadline < per-attempt timeout | same | s | tighten | EMG-020. |
 | P-26 | `stop_slippage_allowance` | PROPOSED | 1.0 × P-13 component B median spread, added to modelled loss at SL | same | account currency | tighten | RISK-012. |
-| P-27 | `min_reward_risk` | PROPOSED | 1.0; strategies may require more | 1.0 | TP distance ÷ SL distance (net of round-trip spread) | tighten | — |
+| P-27 | `min_reward_risk` | PROPOSED | 1.0; strategies may require more | 1.0 | TP distance ÷ SL distance (net of round-trip spread) | tighten | Below it: REJECT `REWARD_RISK_BELOW_MIN`. |
 | P-28 | `llm_monthly_spend_cap` | USER_DECISION_REQUIRED | 0 = LLM disabled | 0 | USD | tighten | LLM-004. |
 | P-29 | `max_signal_age` | PROPOSED | 2 | 2 | s between signal creation and RiskEngine evaluation | tighten | Prevents trading on stale signals. |
 | P-30 | `foreign_activity_policy` | PROPOSED | ENTRY_STOP and alert; foreign positions are closed only if the user ticks "include foreign positions" in Emergency Liquidation | same | — | — | EXP-009, EMG-030. |
@@ -256,11 +257,11 @@ approved**.
   10,000 USC = 0.41×.
 - **EXP-004 Margin utilisation.** `required = order_calc_margin(type, symbol, volume, price)`
   [VERIFIED S12: account currency; **ignores existing positions**]. Therefore
-  `projected_used = account.margin + required`, and `projected_used / equity × 100 ≤ P-10`.
+  `projected_used = account.margin + required`, and `projected_used / equity × 100 ≤ P-10`, else REJECT `MARGIN_UTILISATION`.
 - **EXP-005 Projected margin level.** `equity / projected_used × 100 ≥ P-11`. Also require
-  `margin_free − required > 0`.
+  `margin_free − required > 0`. Failures: `MARGIN_LEVEL` and `FREE_MARGIN`.
 - **EXP-006 Stop-out distance.** Report the price move that would bring the margin level to
-  `margin_so_so`. Reject if it is smaller than 3 × the SL distance.
+  `margin_so_so`. Reject (`STOP_OUT_DISTANCE`) if it is smaller than 3 × the SL distance.
 - **EXP-007 Account leverage cap.** `account_info().leverage > P-12` → ENTRY_STOP (retained from
   V1 as an *additional* control). Because Exness may apply different margin during news
   [VERIFIED S2: 1:200 cap on new gold positions] and around breaks [REPORTED S5], margin is

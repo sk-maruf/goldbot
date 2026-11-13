@@ -189,3 +189,15 @@ CENT-005, PRV-010) were updated by hand. No requirement ID was added or removed.
 **Safety-restriction check for these fixes:** no loosening. CH-85 widens what counts as CRITICAL.
 CH-86 removes a claimed mitigation that the default configuration never had, and raises the stated
 residual risk to match.
+
+## 8. User decisions and follow-ups (2026-11-13)
+
+The user answered D-01..D-07 and D-09..D-12 and the open kickoff questions in chat on 2026-11-13.
+Values are recorded in `config/risk_limits.yaml` and `docs/STATUS.md` §8; no spec value changed.
+
+| # | Earlier text | Weakness | Correction | Reason | Development impact | Validation |
+| --- | --- | --- | --- | --- | --- | --- |
+| CH-90 | EXP-004, EXP-005 (free margin), EXP-006, P-27, RISK-002 (unknown action) and the ACTIVE-state requirement had no reason code | A rejection by them could not be recorded (A-71, M0b review) | Codes `MARGIN_UTILISATION`, `FREE_MARGIN`, `STOP_OUT_DISTANCE`, `REWARD_RISK_BELOW_MIN`, `UNKNOWN_ACTION`, `STATE_NOT_ACTIVE` | User approved the names 2026-11-13 | `risk_decision` schema enum | M3 tests per code |
+| CH-91 | PRIVACY_POLICY §5 did not list the NTP flow that TIME-010 needs | An unlisted outbound flow | Row added: time.google.com and time.cloudflare.com, user choice 2026-11-13 | Every outbound flow is listed and consented (PRV-018) | `config/app.yaml` servers | `goldbot doctor` clock check |
+
+**Safety-restriction check:** no loosening. CH-90 names rejections that already existed; CH-91 lists a flow that was required but undocumented.

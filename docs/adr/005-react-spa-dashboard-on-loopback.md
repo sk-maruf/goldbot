@@ -1,9 +1,9 @@
 # ADR-005: Local desktop dashboard as a React + TypeScript SPA served on loopback
 
-Status: Proposed (pack default, not confirmed by user, 2026-11-13)
+Status: Accepted (confirmed by the user, 2026-11-13)
 
-> **DEFAULT — not confirmed by user** (`docs/STATUS.md` §9, kickoff question 1). This ADR records the
-> pack default. Flutter desktop remains an open user choice.
+> **Confirmed by the user on 2026-11-13** (`docs/STATUS.md` §9, kickoff question 1), with dark and
+> light themes, dark first. Flutter desktop was the alternative and is not pursued.
 
 ## Context
 

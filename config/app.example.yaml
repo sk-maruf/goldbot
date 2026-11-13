@@ -58,10 +58,11 @@ mt5:
   magic_guardian: null
 
 ntp:
-  # OPEN for the user: NTP servers are an outbound flow that PRIVACY_POLICY.md §5 does not yet list,
-  # so none is preset. TIME-010 needs at least two servers; offsets are checked against P-16.
-  # Until the user sets them, the clock check fails and trading stays blocked (fail closed).
-  servers: []
+  # User choice 2026-11-13 (PRIVACY_POLICY.md §5 lists this outbound flow). TIME-010 needs at least
+  # two servers; offsets are checked against P-16. With fewer, the clock check fails closed.
+  servers:
+    - time.google.com
+    - time.cloudflare.com
 
 llm:
   # Disabled (LLM-004). The LLM is advisory only and never touches the order path (LLM-001). Its

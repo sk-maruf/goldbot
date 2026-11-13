@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://goldbot.local/schemas/risk_decision.schema.json",
   "title": "RiskDecision",
-  "description": "Deterministic RiskEngine result (RISK-001..003; table risk_decisions). evaluate() is a pure function of its inputs; inputs_hash identifies them. Reason codes are the ones TRADING_RISK_SPEC §3-§5 and §11 (GV/CGV) name. Some checks (EXP-004 margin utilisation, EXP-005 free margin, EXP-006 stop-out distance, P-27 reward-to-risk, trading state not ACTIVE, unknown action type) have no named code in the spec, so a rejection by them cannot yet be expressed: an open spec gap.",
+  "description": "Deterministic RiskEngine result (RISK-001..003; table risk_decisions). evaluate() is a pure function of its inputs; inputs_hash identifies them. Reason codes are the ones TRADING_RISK_SPEC \u00a73-\u00a75 and \u00a711 (GV/CGV) name. Some checks (EXP-004 margin utilisation, EXP-005 free margin, EXP-006 stop-out distance, P-27 reward-to-risk, trading state not ACTIVE, unknown action type) have no named code in the spec, so a rejection by them cannot yet be expressed: an open spec gap.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -89,7 +89,13 @@
           "NEWS_DATA_INVALID",
           "MODIFICATION_PAST_CLOSE",
           "CURRENCY_MISMATCH",
-          "SPEC_INCOMPLETE"
+          "SPEC_INCOMPLETE",
+          "MARGIN_UTILISATION",
+          "FREE_MARGIN",
+          "STOP_OUT_DISTANCE",
+          "REWARD_RISK_BELOW_MIN",
+          "STATE_NOT_ACTIVE",
+          "UNKNOWN_ACTION"
         ]
       }
     },

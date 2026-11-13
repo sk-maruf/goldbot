@@ -1,0 +1,528 @@
+# GoldBot risk limits - THE REAL FILE (RISK-090). Validated against config/schema/risk_limits.schema.json
+# at startup, hashed, and the hash audited. The UI may only tighten. Loosening needs: file edit,
+# restart, typed confirmation. Thresholds are intervention triggers, not limits on loss (RISK-041).
+# Approvals recorded 2026-11-13 from the user's answers in chat; copied into docs/STATUS.md §8 (RISK-092).
+# P-14 and P-13 component A stay null until measured (BROKER_VERIFICATION_REQUIRED).
+# The fixtures block is for tests only and is never read as a setting (RISK-005).
+schema_version: 1.0.0
+profile_name: null
+narrowing_rules: []
+params:
+- id: P-01
+  name: risk_per_trade
+  status: USER_DECISION_REQUIRED
+  unit: '% of current equity'
+  ui_direction: tighten
+  recommended: 0.10–0.50 (V1 proposal 0.25)
+  value: '0.25'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-02
+  name: daily_loss_intervention
+  status: USER_DECISION_REQUIRED
+  unit: '% of equity at day start (00:00 UTC)'
+  ui_direction: tighten
+  recommended: 0.5–2.0 (V1 proposal 1.00)
+  value: '1.00'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-03
+  name: weekly_loss_intervention
+  status: USER_DECISION_REQUIRED
+  unit: '% of equity at week start (Mon 00:00 UTC)'
+  ui_direction: tighten
+  recommended: 1.0–4.0 (V1 proposal 2.00)
+  value: '2.00'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-04
+  name: max_drawdown_intervention
+  status: USER_DECISION_REQUIRED
+  unit: '% below equity high-water mark'
+  ui_direction: tighten
+  recommended: 3–10 (V1 proposal 5.00)
+  value: '5.00'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-05
+  name: max_open_positions
+  status: USER_DECISION_REQUIRED
+  unit: count
+  ui_direction: tighten
+  recommended: Set per strategy, bounded by P-31; no fixed number is imposed
+  value: PER_STRATEGY_BOUNDED_BY_P-31
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-06
+  name: max_pending_orders
+  status: PROPOSED
+  unit: count
+  ui_direction: tighten
+  recommended: 0 until a strategy specification requires pending orders
+  value: 0
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-07
+  name: consecutive_losses_entry_stop
+  status: USER_DECISION_REQUIRED
+  unit: closed trades with net P/L < 0
+  ui_direction: tighten
+  recommended: 2–5 (V1 proposal 3)
+  value: 3
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-08
+  name: consecutive_losses_suspend
+  status: USER_DECISION_REQUIRED
+  unit: as above (closed trades with net P/L < 0)
+  ui_direction: tighten
+  recommended: P-07 + 1 … P-07 + 3 (V2 proposal 5)
+  value: 5
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-09
+  name: max_effective_leverage
+  status: PROPOSED
+  unit: aggregate notional ÷ equity (×)
+  ui_direction: tighten
+  recommended: '1.0'
+  value: '1.0'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-10
+  name: max_margin_utilisation
+  status: PROPOSED
+  unit: projected used margin ÷ equity, %
+  ui_direction: tighten
+  recommended: '10'
+  value: '10'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-11
+  name: min_projected_margin_level
+  status: PROPOSED
+  unit: equity ÷ projected used margin × 100, %
+  ui_direction: tighten
+  recommended: '1000'
+  value: '1000'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-12
+  name: account_leverage_cap
+  status: PROPOSED
+  unit: '`account_info().leverage` (1:N)'
+  ui_direction: tighten
+  recommended: '200'
+  value: 200
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-13
+  name: max_spread
+  status: PROPOSED
+  status_note: Component A is BROKER_VERIFICATION_REQUIRED (A-40); B and C are PROPOSED
+  measured_in: M2–M7 (component A)
+  unit: price
+  ui_direction: tighten
+  recommended: 'min(A, B, C): A = absolute cap from live spread data; B = 2.0 × rolling 20-day median spread for
+    the same session hour; C = 10% of SL distance. A strategy may set stricter values (RISK-017)'
+  value:
+    rule: min(A, B, C)
+    a_absolute_price: null
+    b_median_spread_multiple: '2.0'
+    b_rolling_window_days: 20
+    b_basis: median spread for the same session hour
+    c_percent_of_sl_distance: '10'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-14
+  name: max_entry_deviation
+  status: BROKER_VERIFICATION_REQUIRED
+  measured_in: M7
+  unit: points (order `deviation`)
+  ui_direction: tighten
+  recommended: Set in M7 from demo slippage data
+  value: null
+  approved_by_user: false
+  approved_on: null
+  reason: ''
+- id: P-15
+  name: tick_staleness_limit
+  status: PROPOSED
+  unit: seconds since last *locally received* tick change, during an open session
+  ui_direction: tighten
+  recommended: '10'
+  value: 10
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-16
+  name: clock_offset_limits
+  status: PROPOSED
+  unit: ms, local UTC vs NTP
+  ui_direction: tighten
+  recommended: warn 500 / entry-stop 1000
+  value:
+    warn_ms: 500
+    entry_stop_ms: 1000
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-17
+  name: server_offset_tolerance
+  status: PROPOSED
+  unit: seconds between consecutive server-offset estimates
+  ui_direction: tighten
+  recommended: '5'
+  value: 5
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-18
+  name: news_blackout
+  status: PROPOSED
+  unit: minutes
+  ui_direction: widen only
+  recommended: −30 min / +15 min around high-impact USD events; applies to every strategy not validated for news
+    (RISK-018)
+  value:
+    minutes_before_event: 30
+    minutes_after_event: 15
+    events: high-impact USD
+    applies_to: every strategy not validated for news (RISK-018)
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-19
+  name: pre_close_entry_restriction
+  status: PROPOSED
+  unit: minutes
+  ui_direction: widen only
+  recommended: No new entries within 60 min before the daily break or any session end; 120 min before the last session
+    of the week or a known early close; none in the first 30 min after an open
+  value:
+    minutes_before_daily_break_or_session_end: 60
+    minutes_before_last_session_of_week_or_early_close: 120
+    minutes_after_open: 30
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-20
+  name: engine_heartbeat_interval
+  status: PROPOSED
+  unit: s (engine → Guardian file)
+  ui_direction: none
+  recommended: '2'
+  value: 2
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-21
+  name: guardian_staleness
+  status: PROPOSED
+  unit: s
+  ui_direction: tighten
+  recommended: engine considers the Guardian stale after 20 s; the Guardian considers the engine stale after 15
+    s
+  value:
+    engine_considers_guardian_stale_after_s: 20
+    guardian_considers_engine_stale_after_s: 15
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-22
+  name: missing_stop_response
+  status: PROPOSED
+  unit: s
+  ui_direction: tighten
+  recommended: engine must confirm SL within 3 s of fill; Guardian acts at 10 s
+  value:
+    engine_confirms_sl_within_s_of_fill: 3
+    guardian_acts_at_s: 10
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-23
+  name: approval_expiry
+  status: PROPOSED
+  unit: s / price
+  ui_direction: tighten
+  recommended: 60 s or price drift > `max(3 × spread, 0.05 × SL distance)`
+  value:
+    expiry_s: 60
+    price_drift_rule: max(3 × spread, 0.05 × SL distance)
+    price_drift_spread_multiple: '3'
+    price_drift_sl_distance_fraction: '0.05'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-24
+  name: reconciliation
+  status: PROPOSED
+  unit: s
+  ui_direction: tighten
+  recommended: every 5 s; unexplained mismatch → ENTRY_STOP; unresolved > 60 s → SUSPENDED
+  value:
+    interval_s: 5
+    on_unexplained_mismatch: ENTRY_STOP
+    suspended_if_unresolved_after_s: 60
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-25
+  name: emergency_operation_timing
+  status: PROPOSED
+  unit: s
+  ui_direction: tighten
+  recommended: per-attempt timeout 5 s; retry back-off 1, 2, 4, 8 s; max 5 attempts; global deadline 60 s per emergency
+    run. Worst case 5 × 5 + (1 + 2 + 4 + 8) = 40 s ≤ 60 s. No attempt starts if the remaining deadline < per-attempt
+    timeout
+  value:
+    per_attempt_timeout_s: 5
+    retry_backoff_s:
+    - 1
+    - 2
+    - 4
+    - 8
+    max_attempts: 5
+    global_deadline_s: 60
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-26
+  name: stop_slippage_allowance
+  status: PROPOSED
+  unit: account currency
+  ui_direction: tighten
+  recommended: 1.0 × P-13 component B median spread, added to modelled loss at SL
+  value:
+    median_spread_multiple: '1.0'
+    basis: P-13 component B median spread, added to modelled loss at SL
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-27
+  name: min_reward_risk
+  status: PROPOSED
+  unit: TP distance ÷ SL distance (net of round-trip spread)
+  ui_direction: tighten
+  recommended: 1.0; strategies may require more
+  value: '1.0'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-28
+  name: llm_monthly_spend_cap
+  status: USER_DECISION_REQUIRED
+  unit: USD
+  ui_direction: tighten
+  recommended: 0 = LLM disabled
+  value: '0'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-29
+  name: max_signal_age
+  status: PROPOSED
+  unit: s between signal creation and RiskEngine evaluation
+  ui_direction: tighten
+  recommended: '2'
+  value: 2
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-30
+  name: foreign_activity_policy
+  status: PROPOSED
+  unit: —
+  ui_direction: none
+  recommended: ENTRY_STOP and alert; foreign positions are closed only if the user ticks "include foreign positions"
+    in Emergency Liquidation
+  value:
+    on_foreign_activity:
+    - ENTRY_STOP
+    - ALERT
+    close_foreign_positions: only if the user ticks "include foreign positions" in Emergency Liquidation
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-31
+  name: max_aggregate_open_risk
+  status: USER_DECISION_REQUIRED
+  unit: '% of equity, sum of modelled loss-to-SL over open positions + proposed'
+  ui_direction: tighten
+  recommended: ≤ 2 × P-01 recommended while positions are correlated (one symbol)
+  value: '0.25'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-32
+  name: strategy_risk_budget
+  status: USER_DECISION_REQUIRED
+  unit: '% of equity per trade'
+  ui_direction: tighten
+  recommended: Per strategy, ≤ P-01
+  value: '0.25'
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-33
+  name: session_close_deadline
+  status: PROPOSED
+  unit: minutes
+  ui_direction: widen only
+  recommended: All positions confirmed closed 30 min before the daily break or any session end; 60 min before the
+    last session of the week or a known early close. Each deadline must leave ≥ 3 × the P-25 global deadline before
+    the session end
+  value:
+    minutes_before_daily_break_or_session_end: 30
+    minutes_before_last_session_of_week_or_early_close: 60
+    min_lead_multiple_of_p25_global_deadline: 3
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-34
+  name: auto_recovery
+  status: PROPOSED
+  unit: min / count
+  ui_direction: tighten
+  recommended: Cooldown per trigger class in §7 (default 5 min); health checks must pass continuously for the cooldown;
+    ≤ 3 automatic resumptions per trigger per UTC day, then MANUAL
+  value:
+    default_cooldown_minutes: 5
+    per_trigger_cooldowns: TRADING_RISK_SPEC.md §7 table
+    health_checks_pass_continuously_for_cooldown: true
+    max_automatic_resumptions_per_trigger_per_utc_day: 3
+    after_limit: MANUAL
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13 (PROPOSED set approved as proposed)
+- id: P-35
+  name: daily_profit_target_behaviour
+  status: USER_DECISION_REQUIRED
+  unit: '% of equity'
+  ui_direction: none
+  recommended: 'Options: none / stop entries after target / reduce risk after target. No behaviour exists until
+    decided'
+  value: none
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-36
+  name: consecutive_loss_risk_reduction
+  status: USER_DECISION_REQUIRED
+  unit: factor
+  ui_direction: tighten
+  recommended: 'Options: none / multiply P-01 by a factor < 1 after N losses until a win. Never an increase'
+  value: none
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+- id: P-37
+  name: entry_authorization_mode
+  status: USER_DECISION_REQUIRED
+  unit: enum
+  ui_direction: none
+  recommended: '`MANUAL_APPROVAL` / `AUTO_ALL` / `AUTO_APPROVED_STRATEGIES` (§9)'
+  value: AUTO_ALL
+  approved_by_user: true
+  approved_on: '2026-11-13'
+  reason: User decision in chat (dialog), 2026-11-13
+fixtures:
+  P-01: '0.25'
+  P-02: '1.00'
+  P-03: '2.00'
+  P-04: '5.00'
+  P-05: 1
+  P-06: 0
+  P-07: 3
+  P-08: 5
+  P-09: '1.0'
+  P-10: '10'
+  P-11: '1000'
+  P-12: 200
+  P-13:
+    rule: min(B, C)
+    a_absolute_price: null
+    b_median_spread_multiple: '2.0'
+    b_rolling_window_days: 20
+    b_basis: median spread for the same session hour
+    c_percent_of_sl_distance: '10'
+  P-15: 10
+  P-16:
+    warn_ms: 500
+    entry_stop_ms: 1000
+  P-17: 5
+  P-18:
+    minutes_before_event: 30
+    minutes_after_event: 15
+    events: high-impact USD
+    applies_to: every strategy not validated for news (RISK-018)
+  P-19:
+    minutes_before_daily_break_or_session_end: 60
+    minutes_before_last_session_of_week_or_early_close: 120
+    minutes_after_open: 30
+  P-20: 2
+  P-21:
+    engine_considers_guardian_stale_after_s: 20
+    guardian_considers_engine_stale_after_s: 15
+  P-22:
+    engine_confirms_sl_within_s_of_fill: 3
+    guardian_acts_at_s: 10
+  P-23:
+    expiry_s: 60
+    price_drift_rule: max(3 × spread, 0.05 × SL distance)
+    price_drift_spread_multiple: '3'
+    price_drift_sl_distance_fraction: '0.05'
+  P-24:
+    interval_s: 5
+    on_unexplained_mismatch: ENTRY_STOP
+    suspended_if_unresolved_after_s: 60
+  P-25:
+    per_attempt_timeout_s: 5
+    retry_backoff_s:
+    - 1
+    - 2
+    - 4
+    - 8
+    max_attempts: 5
+    global_deadline_s: 60
+  P-26:
+    median_spread_multiple: '1.0'
+    basis: P-13 component B median spread, added to modelled loss at SL
+  P-27: '1.0'
+  P-28: '0'
+  P-29: 2
+  P-30:
+    on_foreign_activity:
+    - ENTRY_STOP
+    - ALERT
+    close_foreign_positions: only if the user ticks "include foreign positions" in Emergency Liquidation
+  P-31: '0.25'
+  P-32:
+    equals: P-01
+  P-33:
+    minutes_before_daily_break_or_session_end: 30
+    minutes_before_last_session_of_week_or_early_close: 60
+    min_lead_multiple_of_p25_global_deadline: 3
+  P-34:
+    default_cooldown_minutes: 5
+    per_trigger_cooldowns: TRADING_RISK_SPEC.md §7 table
+    health_checks_pass_continuously_for_cooldown: true
+    max_automatic_resumptions_per_trigger_per_utc_day: 3
+    after_limit: MANUAL
+  P-35: none
+  P-36: none
+  P-37: MANUAL_APPROVAL

@@ -117,52 +117,50 @@ Unchanged from `quality/ASSUMPTIONS_AND_UNKNOWNS.md`; listed with what each need
 - **BLOCKED until M7 (Standard demo):** A-08 commission from first deals; A-30 comment preservation;
   A-31 SL on entry; A-41 P-14 from demo slippage; A-42 EXE-060 thresholds; A-40 needs at least two
   weeks of spread data (M2–M7).
-- **OPEN, user:** A-46 and A-47 (approve `PROPOSED` parameters and research thresholds); A-50
-  legality (Phase 0); A-51, A-52 privacy law and record retention; A-09 swap-free conditions.
+- **OPEN, user:** A-50 legality (Phase 0 checklist sign-off before M10); A-51, A-52 privacy law
+  and record retention. A-46 and A-47 were approved 2026-11-13; A-09 waits for M2 verification.
 - **Unknown by design:** A-55 whether any edge exists; A-67 and A-70 minimum-lot feasibility (S0).
-- **BLOCKED until the user names them (M3):** A-71 RiskEngine reason codes for EXP-004/005/006,
-  P-27, state not ACTIVE and unknown action type (found in the M0b review).
-- **OPEN, user (from M0b):** NTP servers (an outbound flow PRIVACY_POLICY §5 does not list;
-  `config/app.example.yaml` presets none, so the clock check fails closed until set).
 
 ## 8. Decision register D-01..D-12
 
-No decision was made in M0a. Claude Code chose none (CLAUDE.md §3.22). Options and consequences are
-in `quality/ASSUMPTIONS_AND_UNKNOWNS.md` §5.
+Decided by the user in chat on 2026-11-13 (dialog answers); Claude Code chose none. Approval
+records are in `config/risk_limits.yaml` (RISK-092). Values equal the fixture column, so the
+golden vectors of TRADING_RISK_SPEC §11 need no recomputation.
 
-| ID | Decision | Status |
+| ID | Decision | Answer |
 | --- | --- | --- |
-| D-01 | Entry authorization mode (P-37) | STILL PENDING. Intent AUTO_ALL stated 2026-11-10 (twice); intent is not approval (MI-162, RISK-092) |
-| D-02 | Risk per trade (P-01), strategy budgets (P-32) | STILL PENDING |
-| D-03 | Daily, weekly and drawdown interventions (P-02, P-03, P-04) | STILL PENDING |
-| D-04 | Aggregate open risk (P-31), maximum positions (P-05) | STILL PENDING |
-| D-05 | Daily profit-target behaviour (P-35) | STILL PENDING |
-| D-06 | Consecutive-loss limits (P-07, P-08), risk reduction (P-36) | STILL PENDING |
-| D-07 | Trading style | STILL PENDING |
-| D-08 | Initial strategy selection | STILL PENDING (M0c proposes candidates) |
-| D-09 | One strategy or several | STILL PENDING |
-| D-10 | Rule-based, ML-assisted or hybrid | STILL PENDING |
-| D-11 | Research of new strategies; AI signal permissions | STILL PENDING |
-| D-12 | Adaptive strategy selection | STILL PENDING |
+| D-01 | Entry authorization mode (P-37) | DECIDED 2026-11-13: `AUTO_ALL` |
+| D-02 | Risk per trade, strategy budget | DECIDED 2026-11-13: P-01 0.25%, P-32 0.25% |
+| D-03 | Daily, weekly, drawdown interventions | DECIDED 2026-11-13: P-02 1.00%, P-03 2.00%, P-04 5.00% |
+| D-04 | Aggregate open risk, positions | DECIDED 2026-11-13: P-31 0.25% (one full-risk position at a time); P-05 follows the strategy within P-31 |
+| D-05 | Daily profit-target behaviour (P-35) | DECIDED 2026-11-13: none |
+| D-06 | Loss streak limits, reduction | DECIDED 2026-11-13: P-07 3, P-08 5, P-36 none |
+| D-07 | Trading style | DECIDED 2026-11-13: research both scalping and intraday; the edge verdict picks |
+| D-08 | Initial strategy selection | PENDING (M0c proposes candidates) |
+| D-09 | One strategy or several | DECIDED 2026-11-13: several strategies, sharing the P-31 budget |
+| D-10 | Rule-based, ML or hybrid | DECIDED 2026-11-13: rule-based only (no model in the signal path) |
+| D-11 | Research, AI permissions | DECIDED 2026-11-13: the system may research and report new strategies (never deploys without approval); LLM disabled (P-28 = 0); no AI in signals |
+| D-12 | Adaptive selection | DECIDED 2026-11-13: prevalidated selector (C4, built and validated in M6f) |
 
-Until decided: tests and fixture demo use the labelled fixture values; LIVE stays blocked (RISK-005).
+The user first chose Hybrid for D-10 and then, asked about the conflict with D-11, chose
+rule-based only. With P-31 = P-01 = 0.25%, several strategies cannot hold positions at the same
+time; at most one full-risk position is open.
 
-## 9. Kickoff §4 questions
+## 9. Kickoff §4 questions (answered 2026-11-13)
 
-The user chose not to be stopped for these. Each line is the pack's own default or the absence of an
-answer, and none is an approval.
-
-| # | Question | Recorded |
+| # | Question | Answer |
 | --- | --- | --- |
-| 1 | Dashboard technology | React SPA (ADR-005). `DEFAULT — not confirmed by user` |
-| 2 | `PROPOSED` engineering parameters (P-06, P-09..P-27, P-29, P-30, P-33, P-34) | NOT APPROVED. They stay `PROPOSED` |
-| 3 | Research thresholds A1–A10, RES-023..026, RISK-063, MI-042/043 (and RES-040 defaults) | NOT APPROVED. They stay `PROPOSED` |
-| 4 | LLM | Disabled. P-28 itself is STILL PENDING |
-| 5 | MCP server in M8, and which admin actions | NOT ANSWERED. M8 builds no MCP server until the user chooses it |
-| 6 | Swap-free status and conditions | NOT ANSWERED (A-09 stays OPEN) |
-| 7 | Holidays and early closes | M0b writes the empty example; M2 creates an empty file the user maintains |
-| 8 | Phase 0 (legality, funding channel, age) | NOT ANSWERED. `NOT CLEARED`; LIVE blocked |
-| 9 | Any D-decision now | None |
+| 1 | Dashboard technology | React + TypeScript SPA on loopback, confirmed (ADR-005 Accepted); dark and light themes |
+| 2 | `PROPOSED` engineering parameters | APPROVED as proposed (A-46); P-14 and P-13 component A wait for broker data |
+| 3 | Research thresholds A1–A10 and related defaults | APPROVED as proposed (A-47) |
+| 4 | LLM | Disabled completely; P-28 = 0 |
+| 5 | MCP server in M8 | Yes: the 9 read tools and the 3 admin actions (each admin action still approved per invocation, MCP-030) |
+| 6 | Swap-free | User states the account is swap-free; M2 verifies from MT5 (A-09) |
+| 7 | Holidays and early closes | Empty example (M0b); M2 creates the file the user maintains |
+| 8 | Phase 0 | User states legality, funding channel and age are confirmed; `PHASE0_CLEARANCE.md` stays `NOT CLEARED` until the user signs the checklist before M10 |
+| 9 | D-decisions | See §8 |
+| — | NTP servers | time.google.com, time.cloudflare.com (PRIVACY_POLICY §5, CH-91) |
+| — | A-71 reason codes | Names approved (CH-90) |
 
 ## 10. UI direction (user decision, 2026-11-10)
 
@@ -179,8 +177,7 @@ Source: `Inspiration.jpg` in the repo root. Logged as CH-89; noted at the top of
   three blur layers, AA contrast, never colour alone, no pulsing or animation unless it is a real
   safety state, `env` banner colours, three separate emergency controls. The brand lime is never
   the `HEALTHY` or profit token.
-- **OPEN, user:** the brief and the M4 tests require a light theme as well. Keep a light theme, or
-  dark only? Until answered, both are specified, dark first.
+- **Answered 2026-11-13:** dark and light themes, dark first.
 
 ## 11. M0b record (2026-11-13)
 
