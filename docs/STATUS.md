@@ -14,7 +14,7 @@ dependency order in `prompts/01_MILESTONE_PROMPTS.md`). The M0 review runs once,
 | M0a Read, contradictions, tooling, re-verification, decisions | DONE | APPROVE (M0 review, §13) | 2026-11-10 |
 | M0b ADRs, schemas, config examples | DONE | APPROVE (M0 review, §13) | 2026-11-13 |
 | M0c UI spec, candidates, test plan, runbook, DoD, Phase 0, backlog, review | DONE | APPROVE (M0 review, §13) | 2026-11-13 |
-| S0 Feasibility spike (advisory, gates nothing) | NOT STARTED | n/a | |
+| S0 Feasibility spike (advisory, gates nothing) | DONE (§14) | n/a | 2026-11-13 |
 | M1 Foundation | NOT STARTED | | |
 | M2a Read-only MT5 and discovery · M2b 24 h soak | NOT STARTED | | |
 | M3 Decimal and RiskEngine | NOT STARTED | | |
@@ -257,3 +257,27 @@ review-only); `config/risk_limits.yaml` and the example validate; all schemas pa
 
 **Answers the user gave on 2026-11-13 beyond §8/§9:** pre-gate effective mode MANUAL_APPROVAL; the
 four safety-tightening packages; RES-040 approved; stricter-only dashboard tightening (RISK-091).
+
+## 14. S0 feasibility spike (2026-11-13, advisory; input to D-02, D-07..D-09, no choice approved)
+
+Report: `docs/research/feasibility_spike.md` (code `spikes/feasibility/`). Data: the user's Exness
+**Standard demo** terminal (`XAUUSDm`, Exness-MT5Trial7), read-only; M5 2025-06-18..2026-05-12 and
+H1 2017-03-01..2024-04-19 after the RES-005 holdout cuts (M5 cut 2026-05-13). Sizing: `ILL-CENT`,
+equity 10,000 USC fixed; margin codes use ILLUSTRATIVE stand-ins (no `order_calc_*` offline).
+All numbers are `PT0 — FEASIBILITY ONLY, NOT A RESULT`.
+
+| Candidate | A10 at 0.25 % (95 % interval) | Survivors/week at 0.25 % | Verdict |
+| --- | --- | --- | --- |
+| A opening-range breakout + retest | 30 % (11–60 %), 10 signals | 0.15 | feasible at 0.25 % only (weak sample) |
+| B H1 trend (recent prices) | 38 % (25–53 %), 42 signals | 0.55 | feasible at ≥ 0.25 % |
+| C M5 early reversal | 39 % (20–61 %), 18 signals | 0.23 | feasible at 0.25 % only (weak sample) |
+
+Feasible stop window at ~$4,100 gold and 0.25 %: about $8.17 (effective-leverage floor, P-09) to
+$24.84 (minimum-lot ceiling, P-26 included).
+
+**Findings for the user and M6:** (1) as written, the rules give roughly 8, 29 and 12 tradeable
+signals a year at 0.25 % — far below the ~200 out-of-sample trades A1 needs, so none could reach a
+PASS verdict in a reasonable time; M6 pre-registration must address signal frequency (without
+tuning on this data). (2) Stops computed from bars are off the tick grid; strategies need on-tick
+SL rules or the RISK-025 quantization opt-in. (3) A-72: the investor-login flag could not be
+confirmed (user statement recorded).

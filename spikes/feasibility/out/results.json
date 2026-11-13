@@ -1,0 +1,420 @@
+{
+  "meta": {
+    "label": "PT0 \u2014 FEASIBILITY ONLY, NOT A RESULT",
+    "cut_m5": "2026-05-13 00:00:00+00:00",
+    "cut_h1": "2024-04-20 00:00:00+00:00",
+    "h1_dense_start": "2017-03-01 00:00:00+00:00",
+    "m5_first": "2025-06-18 11:10:00+00:00",
+    "m5_last": "2026-11-13 14:15:00+00:00",
+    "h1_first": "2014-01-14 00:00:00+00:00",
+    "h1_last": "2026-11-13 14:00:00+00:00"
+  },
+  "runs": {
+    "A": {
+      "label": "PT0 \u2014 FEASIBILITY ONLY, NOT A RESULT",
+      "window": [
+        "2025-06-18 11:10:00+00:00",
+        "2026-05-12 23:55:00+00:00"
+      ],
+      "weeks": 46.933035714285715,
+      "setups": 17,
+      "diag": {
+        "ranges": 462,
+        "range_too_narrow": 1,
+        "breaks": 171,
+        "setups": 17,
+        "invalidated": 10,
+        "no_trade_regime": 1
+      },
+      "D_median": 10.771999999999025,
+      "D_p10": 5.595800000000236,
+      "D_p90": 27.23409999999967,
+      "spread_median": 0.16,
+      "spread_share_median": 0.01653832239392203,
+      "p26_median": 0.16,
+      "price_median": 4157.803,
+      "levels": {
+        "0.10": {
+          "budget": "10.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 1,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 8,
+            "OUTSIDE_STRATEGY_ENVELOPE": 4,
+            "PRE_CLOSE": 2,
+            "SURVIVED": 2
+          },
+          "signals": 17,
+          "excluded": 7,
+          "a10_denominator": 10,
+          "a10_rate": 0.8,
+          "passed_pretrade_gates": 10,
+          "min_volume_rate": 0.8,
+          "survived": 2,
+          "survived_per_week": 0.042613906591838675,
+          "class": "INFEASIBLE",
+          "walls": {
+            "d_max": 9.84,
+            "exposure_floor": 3.1733333333333333,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        },
+        "0.25": {
+          "budget": "25.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 1,
+            "SURVIVED": 7,
+            "OUTSIDE_STRATEGY_ENVELOPE": 4,
+            "PRE_CLOSE": 2,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 2,
+            "EFFECTIVE_LEVERAGE": 1
+          },
+          "signals": 17,
+          "excluded": 7,
+          "a10_denominator": 10,
+          "a10_rate": 0.3,
+          "passed_pretrade_gates": 10,
+          "min_volume_rate": 0.2,
+          "survived": 7,
+          "survived_per_week": 0.14914867307143537,
+          "class": "FEASIBLE",
+          "walls": {
+            "d_max": 24.84,
+            "exposure_floor": 8.173333333333334,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        },
+        "0.50": {
+          "budget": "50.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 1,
+            "EFFECTIVE_LEVERAGE": 6,
+            "OUTSIDE_STRATEGY_ENVELOPE": 4,
+            "PRE_CLOSE": 2,
+            "SURVIVED": 4
+          },
+          "signals": 17,
+          "excluded": 7,
+          "a10_denominator": 10,
+          "a10_rate": 0.6,
+          "passed_pretrade_gates": 10,
+          "min_volume_rate": 0.0,
+          "survived": 4,
+          "survived_per_week": 0.08522781318367735,
+          "class": "MARGINAL",
+          "walls": {
+            "d_max": 49.84,
+            "exposure_floor": 16.506666666666668,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        }
+      }
+    },
+    "B-recent": {
+      "label": "PT0 \u2014 FEASIBILITY ONLY, NOT A RESULT",
+      "window": [
+        "2025-06-18 11:00:00+00:00",
+        "2026-05-12 23:00:00+00:00"
+      ],
+      "weeks": 46.92857142857143,
+      "setups": 86,
+      "diag": {
+        "bos": 480,
+        "setups": 86
+      },
+      "D_median": 20.873272609823623,
+      "D_p10": 11.211924660019498,
+      "D_p90": 44.44243225003895,
+      "spread_median": 0.16,
+      "spread_share_median": 0.008519101187178668,
+      "p26_median": 0.16,
+      "price_median": 4142.5715,
+      "levels": {
+        "0.10": {
+          "budget": "10.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 2,
+            "OUTSIDE_STRATEGY_ENVELOPE": 14,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 42,
+            "PRE_CLOSE": 28
+          },
+          "signals": 86,
+          "excluded": 44,
+          "a10_denominator": 42,
+          "a10_rate": 1.0,
+          "passed_pretrade_gates": 42,
+          "min_volume_rate": 1.0,
+          "survived": 0,
+          "survived_per_week": 0.0,
+          "class": "INFEASIBLE",
+          "walls": {
+            "d_max": 9.84,
+            "exposure_floor": 3.1733333333333333,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        },
+        "0.25": {
+          "budget": "25.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 2,
+            "OUTSIDE_STRATEGY_ENVELOPE": 14,
+            "SURVIVED": 26,
+            "PRE_CLOSE": 26,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 16,
+            "suppressed_by_rule_quota": 2
+          },
+          "signals": 84,
+          "excluded": 42,
+          "a10_denominator": 42,
+          "a10_rate": 0.38095238095238093,
+          "passed_pretrade_gates": 42,
+          "min_volume_rate": 0.38095238095238093,
+          "survived": 26,
+          "survived_per_week": 0.5540334855403348,
+          "class": "FEASIBLE",
+          "walls": {
+            "d_max": 24.84,
+            "exposure_floor": 8.173333333333334,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        },
+        "0.50": {
+          "budget": "50.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 2,
+            "OUTSIDE_STRATEGY_ENVELOPE": 14,
+            "EFFECTIVE_LEVERAGE": 10,
+            "PRE_CLOSE": 24,
+            "SURVIVED": 29,
+            "suppressed_by_rule_quota": 6,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 1
+          },
+          "signals": 80,
+          "excluded": 40,
+          "a10_denominator": 40,
+          "a10_rate": 0.275,
+          "passed_pretrade_gates": 40,
+          "min_volume_rate": 0.025,
+          "survived": 29,
+          "survived_per_week": 0.6179604261796042,
+          "class": "FEASIBLE",
+          "walls": {
+            "d_max": 49.84,
+            "exposure_floor": 16.506666666666668,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        }
+      }
+    },
+    "B-hist": {
+      "label": "PT0 \u2014 FEASIBILITY ONLY, NOT A RESULT",
+      "window": [
+        "2017-03-01 00:00:00+00:00",
+        "2024-04-19 20:00:00+00:00"
+      ],
+      "weeks": 372.4047619047619,
+      "setups": 731,
+      "diag": {
+        "bos": 4076,
+        "setups": 731
+      },
+      "D_median": 5.542818595168842,
+      "D_p10": 3.01416215156736,
+      "D_p90": 9.984147596100641,
+      "spread_median": 0.2,
+      "spread_share_median": 0.037513239048626586,
+      "p26_median": 0.2,
+      "price_median": 1721.129,
+      "levels": {
+        "0.10": {
+          "budget": "10.00",
+          "codes": {
+            "OUTSIDE_STRATEGY_ENVELOPE": 99,
+            "PRE_CLOSE": 142,
+            "CALC_UNAVAILABLE": 6,
+            "SURVIVED": 343,
+            "suppressed_by_rule_quota": 97,
+            "SPREAD_TOO_WIDE": 4,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 40
+          },
+          "signals": 634,
+          "excluded": 247,
+          "a10_denominator": 387,
+          "a10_rate": 0.11369509043927649,
+          "passed_pretrade_gates": 383,
+          "min_volume_rate": 0.10443864229765012,
+          "survived": 343,
+          "survived_per_week": 0.9210408541653347,
+          "class": "FEASIBLE",
+          "walls": {
+            "d_max": 9.8,
+            "exposure_floor": 1.4666666666666666,
+            "p09_max_volume": 0.05,
+            "spread_floor": 2.0
+          }
+        },
+        "0.25": {
+          "budget": "25.00",
+          "codes": {
+            "OUTSIDE_STRATEGY_ENVELOPE": 99,
+            "PRE_CLOSE": 140,
+            "CALC_UNAVAILABLE": 6,
+            "SURVIVED": 364,
+            "suppressed_by_rule_quota": 99,
+            "EFFECTIVE_LEVERAGE": 17,
+            "SPREAD_TOO_WIDE": 4,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 2
+          },
+          "signals": 632,
+          "excluded": 245,
+          "a10_denominator": 387,
+          "a10_rate": 0.059431524547803614,
+          "passed_pretrade_gates": 383,
+          "min_volume_rate": 0.005221932114882507,
+          "survived": 364,
+          "survived_per_week": 0.9774311105428041,
+          "class": "FEASIBLE",
+          "walls": {
+            "d_max": 24.8,
+            "exposure_floor": 3.966666666666666,
+            "p09_max_volume": 0.05,
+            "spread_floor": 2.0
+          }
+        },
+        "0.50": {
+          "budget": "50.00",
+          "codes": {
+            "OUTSIDE_STRATEGY_ENVELOPE": 103,
+            "PRE_CLOSE": 178,
+            "CALC_UNAVAILABLE": 6,
+            "EFFECTIVE_LEVERAGE": 319,
+            "SPREAD_TOO_WIDE": 4,
+            "SURVIVED": 89,
+            "suppressed_by_rule_quota": 32
+          },
+          "signals": 699,
+          "excluded": 287,
+          "a10_denominator": 412,
+          "a10_rate": 0.7839805825242718,
+          "passed_pretrade_gates": 408,
+          "min_volume_rate": 0.0,
+          "survived": 89,
+          "survived_per_week": 0.23898727702832298,
+          "class": "INFEASIBLE",
+          "walls": {
+            "d_max": 49.8,
+            "exposure_floor": 8.133333333333333,
+            "p09_max_volume": 0.05,
+            "spread_floor": 2.0
+          }
+        }
+      }
+    },
+    "C": {
+      "label": "PT0 \u2014 FEASIBILITY ONLY, NOT A RESULT",
+      "window": [
+        "2025-06-18 11:10:00+00:00",
+        "2026-05-12 23:55:00+00:00"
+      ],
+      "weeks": 46.933035714285715,
+      "setups": 30,
+      "diag": {
+        "sweeps": 4880,
+        "no_shift": 3024,
+        "no_g3": 81,
+        "no_g4": 576,
+        "outside_sessions": 507,
+        "setups": 30,
+        "no_trade_regime": 10
+      },
+      "D_median": 11.09778453379704,
+      "D_p10": 4.167466239925671,
+      "D_p90": 34.163926070879555,
+      "spread_median": 0.16,
+      "spread_share_median": 0.0182476882553983,
+      "p26_median": 0.16,
+      "price_median": 4508.8625,
+      "levels": {
+        "0.10": {
+          "budget": "10.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 1,
+            "OUTSIDE_STRATEGY_ENVELOPE": 11,
+            "SURVIVED": 6,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 12
+          },
+          "signals": 30,
+          "excluded": 12,
+          "a10_denominator": 18,
+          "a10_rate": 0.6666666666666666,
+          "passed_pretrade_gates": 18,
+          "min_volume_rate": 0.6666666666666666,
+          "survived": 6,
+          "survived_per_week": 0.12784171977551603,
+          "class": "INFEASIBLE",
+          "walls": {
+            "d_max": 9.84,
+            "exposure_floor": 3.1733333333333333,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        },
+        "0.25": {
+          "budget": "25.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 1,
+            "OUTSIDE_STRATEGY_ENVELOPE": 11,
+            "SURVIVED": 11,
+            "EFFECTIVE_LEVERAGE": 3,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 4
+          },
+          "signals": 30,
+          "excluded": 12,
+          "a10_denominator": 18,
+          "a10_rate": 0.3888888888888889,
+          "passed_pretrade_gates": 18,
+          "min_volume_rate": 0.2222222222222222,
+          "survived": 11,
+          "survived_per_week": 0.2343764862551127,
+          "class": "FEASIBLE",
+          "walls": {
+            "d_max": 24.84,
+            "exposure_floor": 8.173333333333334,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        },
+        "0.50": {
+          "budget": "50.00",
+          "codes": {
+            "CALC_UNAVAILABLE": 1,
+            "OUTSIDE_STRATEGY_ENVELOPE": 11,
+            "EFFECTIVE_LEVERAGE": 11,
+            "SURVIVED": 5,
+            "MIN_VOLUME_EXCEEDS_BUDGET": 2
+          },
+          "signals": 30,
+          "excluded": 12,
+          "a10_denominator": 18,
+          "a10_rate": 0.7222222222222222,
+          "passed_pretrade_gates": 18,
+          "min_volume_rate": 0.1111111111111111,
+          "survived": 5,
+          "survived_per_week": 0.10653476647959668,
+          "class": "INFEASIBLE",
+          "walls": {
+            "d_max": 49.84,
+            "exposure_floor": 16.506666666666668,
+            "p09_max_volume": 0.02,
+            "spread_floor": 1.5999999999999999
+          }
+        }
+      }
+    }
+  }
+}

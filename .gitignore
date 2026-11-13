@@ -1,0 +1,17 @@
+spikes/feasibility/data/
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+data/
+logs/
+reports/
+*.db
+*.db-wal
+*.db-shm
+node_modules/
