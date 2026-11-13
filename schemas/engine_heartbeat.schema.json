@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/engine_heartbeat.schema.json",
+  "title": "EngineHeartbeat",
+  "description": "engine_hb.json, written every P-20 (2 s) (GRD-010). Fields exactly as GRD-010 lists them; env is one of them. The GRD-010 field 'schema' is represented by schema_version. Age is measured by the reader's monotonic clock, never from utc_ms (GRD-007).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "instance_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{8,64}$",
+      "description": "Random per process start, not secret (GRD-008). Format not fixed by the spec."
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Strictly increasing (GRD-007)."
+    },
+    "utc_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Writer UTC time in ms since the Unix epoch."
+    },
+    "trading_state": {
+      "$ref": "common.schema.json#/$defs/trading_state"
+    },
+    "operating_mode": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+          "description": "Entry authorization mode. Null while P-37 is undecided (RISK-065)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ledger_positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ticket": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          },
+          "volume": {
+            "$ref": "common.schema.json#/$defs/decimal_nonneg"
+          },
+          "sl": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/decimal_nonneg"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "ticket",
+          "volume",
+          "sl"
+        ]
+      }
+    },
+    "sl_pending": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ticket": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          },
+          "deadline_utc_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "SL confirmation deadline (P-22). Unit and clock not fixed by GRD-010."
+          }
+        },
+        "required": [
+          "ticket",
+          "deadline_utc_ms"
+        ]
+      },
+      "description": "Tickets awaiting SL confirmation with their deadlines (GRD-020 step 1)."
+    },
+    "emergency_lease_until_utc": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/utc_timestamp",
+          "description": "Lease end, now + 30 s, while an engine emergency action runs (GRD-050). Null when no lease."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "config_hash": {
+      "$ref": "common.schema.json#/$defs/sha256_hex",
+      "description": "Hash of the engine's configuration."
+    },
+    "digest": {
+      "$ref": "common.schema.json#/$defs/sha256_hex",
+      "description": "SHA-256 of the canonical JSON without this field (GRD-008)."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "instance_id",
+    "seq",
+    "utc_ms",
+    "trading_state",
+    "operating_mode",
+    "ledger_positions",
+    "sl_pending",
+    "emergency_lease_until_utc",
+    "config_hash",
+    "digest"
+  ]
+}

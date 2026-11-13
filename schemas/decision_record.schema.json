@@ -1,0 +1,446 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/decision_record.schema.json",
+  "title": "DecisionRecord",
+  "description": "Decision engine output for one strategy version at one time (MI-041, MI-045, MI-150; table decision_records). Stored for every outcome, including WAIT and NO_TRADE. Candidates only: never an approval (MI-003).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "decision_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "strategy": {
+      "$ref": "common.schema.json#/$defs/strategy_name"
+    },
+    "strategy_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "regime_labels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+      },
+      "description": "Regime labels (MI-035, RES-030). Label identifiers are not fixed by the spec."
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "BUY_CANDIDATE",
+        "SELL_CANDIDATE",
+        "WAIT",
+        "NO_TRADE"
+      ]
+    },
+    "no_trade_reason": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "DATA_QUALITY",
+            "MODULE_UNAVAILABLE",
+            "OUTSIDE_ENVELOPE",
+            "REGIME_NOT_ELIGIBLE",
+            "NEWS_WINDOW",
+            "SPREAD",
+            "SESSION",
+            "CONFLICT",
+            "INSUFFICIENT_CONFLUENCE",
+            "CONFLICTING_POSITION"
+          ],
+          "description": "NO_TRADE reason (MI-041). Required when outcome is NO_TRADE, null otherwise."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "bullish_score": {
+      "$ref": "common.schema.json#/$defs/decimal",
+      "description": "Weighted bullish score (MI-042), decimal string."
+    },
+    "bearish_score": {
+      "$ref": "common.schema.json#/$defs/decimal",
+      "description": "Weighted bearish score (MI-042), decimal string."
+    },
+    "contributing_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "G1": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidence_id"
+          }
+        },
+        "G2": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidence_id"
+          }
+        },
+        "G3": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidence_id"
+          }
+        },
+        "G4": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidence_id"
+          }
+        },
+        "G5": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidence_id"
+          }
+        },
+        "G6": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidence_id"
+          }
+        },
+        "G7": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/evidence_id"
+          }
+        }
+      },
+      "description": "Evidence ids by correlation group G1..G7 (MI-043)."
+    },
+    "excluded_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "evidence_id": {
+            "$ref": "common.schema.json#/$defs/evidence_id"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "DUPLICATE",
+              "EXPIRED",
+              "CAPPED",
+              "COUNTED_VIA_DERIVED"
+            ],
+            "description": "MI-045 exclusion reasons; only COUNTED_VIA_DERIVED is spelled as a code in the spec (MI-044), the others are transcribed."
+          }
+        },
+        "required": [
+          "evidence_id",
+          "reason"
+        ]
+      }
+    },
+    "data_quality": {
+      "$ref": "common.schema.json#/$defs/data_quality"
+    },
+    "invalidation": {
+      "type": "string",
+      "maxLength": 256,
+      "description": "The invalidation condition."
+    },
+    "proposed_entry": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "proposed_sl": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "proposed_tp": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/reason_code"
+      }
+    },
+    "rationale": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Deterministic template text (LLM-005), never LLM output."
+    },
+    "setup": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "setup_id": {
+              "$ref": "common.schema.json#/$defs/uuidv7"
+            },
+            "direction": {
+              "$ref": "common.schema.json#/$defs/side"
+            },
+            "entry_zone": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "low": {
+                  "$ref": "common.schema.json#/$defs/decimal_nonneg"
+                },
+                "high": {
+                  "$ref": "common.schema.json#/$defs/decimal_nonneg"
+                }
+              },
+              "required": [
+                "low",
+                "high"
+              ],
+              "description": "Entry zone."
+            },
+            "stop_loss_reference": {
+              "$ref": "common.schema.json#/$defs/decimal_nonneg"
+            },
+            "target_candidates": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/decimal_nonneg"
+              }
+            },
+            "invalidation_level": {
+              "$ref": "common.schema.json#/$defs/decimal_nonneg"
+            },
+            "supporting_evidence_by_group": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "G1": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/evidence_id"
+                  }
+                },
+                "G2": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/evidence_id"
+                  }
+                },
+                "G3": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/evidence_id"
+                  }
+                },
+                "G4": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/evidence_id"
+                  }
+                },
+                "G5": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/evidence_id"
+                  }
+                },
+                "G6": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/evidence_id"
+                  }
+                },
+                "G7": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "common.schema.json#/$defs/evidence_id"
+                  }
+                }
+              },
+              "description": "Evidence ids by correlation group G1..G7 (MI-043)."
+            },
+            "conflicting_evidence": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/evidence_id"
+              }
+            },
+            "evidence_timestamps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "evidence_id": {
+                    "$ref": "common.schema.json#/$defs/evidence_id"
+                  },
+                  "detected_at": {
+                    "$ref": "common.schema.json#/$defs/utc_timestamp"
+                  }
+                },
+                "required": [
+                  "evidence_id",
+                  "detected_at"
+                ]
+              },
+              "description": "detected_at of each evidence id used."
+            },
+            "expected_execution_cost_r": {
+              "$ref": "common.schema.json#/$defs/decimal",
+              "description": "Spread + commission + slippage in R per the BT-022/024 models."
+            },
+            "reward_to_risk_net": {
+              "$ref": "common.schema.json#/$defs/decimal",
+              "description": "Reward-to-risk net of cost."
+            },
+            "setup_quality_score": {
+              "$ref": "common.schema.json#/$defs/decimal",
+              "description": "The MI-042 score, not a probability (MI-154). Nothing is scored twice."
+            },
+            "rejection_reasons": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/reason_code"
+              }
+            }
+          },
+          "required": [
+            "setup_id",
+            "direction",
+            "entry_zone",
+            "stop_loss_reference",
+            "target_candidates",
+            "invalidation_level",
+            "supporting_evidence_by_group",
+            "conflicting_evidence",
+            "evidence_timestamps",
+            "expected_execution_cost_r",
+            "reward_to_risk_net",
+            "setup_quality_score",
+            "rejection_reasons"
+          ],
+          "description": "Setup fields (MI-150). Present only for BUY_CANDIDATE / SELL_CANDIDATE."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "decision_id",
+    "ts",
+    "strategy",
+    "strategy_version",
+    "regime_labels",
+    "outcome",
+    "no_trade_reason",
+    "bullish_score",
+    "bearish_score",
+    "contributing_evidence",
+    "excluded_evidence",
+    "data_quality",
+    "invalidation",
+    "proposed_entry",
+    "proposed_sl",
+    "proposed_tp",
+    "reason_codes",
+    "rationale",
+    "setup"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "const": "NO_TRADE"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "no_trade_reason": {
+            "type": "string"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "no_trade_reason": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": {
+            "enum": [
+              "BUY_CANDIDATE",
+              "SELL_CANDIDATE"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "setup": {
+            "type": "object"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "setup": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

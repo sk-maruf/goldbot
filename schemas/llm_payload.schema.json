@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/llm_payload.schema.json",
+  "title": "LlmPayload",
+  "description": "Allowlist schema for build_llm_payload() (PRV-020/021/025). Only the PRV-020 categories exist here. By construction it has no field for anything PRV-024 forbids: credentials, tokens, keyring contents, salts, account numbers (even hashed), server names, balances or equity in currency, identity, deposit, bank or card data, the user's name, email or location. Amounts are only in R or %.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "payload_type": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$",
+      "description": "Payload type; its exact payload is shown before its first send (PRV-025). Values not fixed by the spec."
+    },
+    "metrics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "value": {
+            "$ref": "common.schema.json#/$defs/decimal"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "R",
+              "PERCENT"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "unit"
+        ]
+      },
+      "maxItems": 500,
+      "description": "Aggregate performance metrics in R or % only."
+    },
+    "strategies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "$ref": "common.schema.json#/$defs/strategy_name"
+          },
+          "version": {
+            "$ref": "common.schema.json#/$defs/semver"
+          }
+        },
+        "required": [
+          "name",
+          "version"
+        ]
+      },
+      "maxItems": 100
+    },
+    "regime_labels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+      },
+      "maxItems": 100
+    },
+    "trades": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "opened_hour": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00\\.000Z$",
+            "description": "UTC timestamp rounded to the hour (PRV-020)."
+          },
+          "closed_hour": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:00:00\\.000Z$",
+            "description": "UTC timestamp rounded to the hour (PRV-020)."
+          },
+          "strategy": {
+            "$ref": "common.schema.json#/$defs/strategy_name"
+          },
+          "strategy_version": {
+            "$ref": "common.schema.json#/$defs/semver"
+          },
+          "result_r": {
+            "$ref": "common.schema.json#/$defs/decimal",
+            "description": "Result in R; sizes only as R."
+          }
+        },
+        "required": [
+          "opened_hour",
+          "closed_hour",
+          "strategy",
+          "strategy_version",
+          "result_r"
+        ]
+      },
+      "maxItems": 5000,
+      "description": "Anonymised trade list: hour-rounded timestamps, results in R, no ticket, volume or currency amount."
+    },
+    "market_data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "Public instrument symbol."
+          },
+          "timeframe": {
+            "$ref": "common.schema.json#/$defs/timeframe"
+          },
+          "open_time": {
+            "$ref": "common.schema.json#/$defs/utc_timestamp"
+          },
+          "open": {
+            "$ref": "common.schema.json#/$defs/decimal_nonneg"
+          },
+          "high": {
+            "$ref": "common.schema.json#/$defs/decimal_nonneg"
+          },
+          "low": {
+            "$ref": "common.schema.json#/$defs/decimal_nonneg"
+          },
+          "close": {
+            "$ref": "common.schema.json#/$defs/decimal_nonneg"
+          }
+        },
+        "required": [
+          "symbol",
+          "timeframe",
+          "open_time",
+          "open",
+          "high",
+          "low",
+          "close"
+        ]
+      },
+      "maxItems": 10000,
+      "description": "Public market data (bars)."
+    },
+    "user_research_text": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 8000,
+          "description": "Research text written by the user, scanned for secrets and identifiers and blocked on any match (PRV-025)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "payload_type",
+    "metrics",
+    "strategies",
+    "regime_labels",
+    "trades",
+    "market_data",
+    "user_research_text"
+  ]
+}

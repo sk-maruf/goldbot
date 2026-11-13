@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/approval.schema.json",
+  "title": "Approval",
+  "description": "A user's decision on a proposal (API-031; table approvals). Stores the single-use nonce, never the approval token or the server key (C4).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "proposal_hash": {
+      "$ref": "common.schema.json#/$defs/sha256_hex"
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32,128}$",
+      "description": "Single-use nonce bound into the token (API-031). Not a secret on its own; format not fixed by the spec."
+    },
+    "user": {
+      "$ref": "common.schema.json#/$defs/actor"
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "APPROVE",
+        "REJECT"
+      ],
+      "description": "Command names from API_SPEC §4; the spec names no other outcome values."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "proposal_hash",
+    "nonce",
+    "user",
+    "ts",
+    "outcome"
+  ]
+}

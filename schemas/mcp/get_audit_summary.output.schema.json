@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/get_audit_summary.output.schema.json",
+  "title": "get_audit_summary output",
+  "description": "Audit event types and counts plus chain-verification status. No secrets and no raw payloads (MCP §4.0). Every output carries env, tier, as_of_utc and health (MCP §4.0). No C4 data ever; the login only hashed (MCP-040). Errors use the generic MCP-042 shape, which is outside this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "env": {
+      "$ref": "../common.schema.json#/$defs/env"
+    },
+    "tier": {
+      "anyOf": [
+        {
+          "$ref": "../common.schema.json#/$defs/tier",
+          "description": "Null: this output has no performance tier."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "as_of_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp"
+    },
+    "health": {
+      "$ref": "../common.schema.json#/$defs/health_state",
+      "description": "Aggregate health at as_of_utc, so stale or unhealthy data is never mistaken for live (MCP §4.0)."
+    },
+    "params": {
+      "$ref": "../common.schema.json#/$defs/params_label",
+      "description": "FIXTURE when fixture parameters are in effect (RISK-066)."
+    },
+    "event_counts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "event": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{0,63}$"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count."
+          }
+        },
+        "required": [
+          "event",
+          "count"
+        ]
+      },
+      "maxItems": 200
+    },
+    "chain_verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "verified": {
+          "type": "boolean"
+        },
+        "last_verified_utc": {
+          "anyOf": [
+            {
+              "$ref": "../common.schema.json#/$defs/utc_timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "verified",
+        "last_verified_utc"
+      ],
+      "description": "SEC-022 verify_chain() result."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "tier",
+    "as_of_utc",
+    "health",
+    "event_counts",
+    "chain_verification"
+  ]
+}

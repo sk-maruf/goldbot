@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/queue_research_job.input.schema.json",
+  "title": "queue_research_job input",
+  "description": "MCP admin action queue_research_job (mcp:admin:queue_research). Approval also needs TOTP in the dashboard. Counts as a trial (RES-021). Strict validation: unknown fields are rejected with a generic error (MCP-015). Strings are capped at 128 characters unless the spec sets another cap.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "template": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9_]{0,63}$",
+      "description": "Pre-registered research template. An enum at runtime; no templates exist yet."
+    },
+    "params": {
+      "type": "object",
+      "maxProperties": 32,
+      "description": "Parameters bounded by the template's own schema, validated server-side."
+    }
+  },
+  "required": [
+    "template",
+    "params"
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mode_change.schema.json",
+  "title": "ModeChange",
+  "description": "A change of entry authorization mode (P-37; RISK-060..062, API_SPEC §4 MODE_CHANGE). Moving to MANUAL_APPROVAL is always allowed; enabling automation needs re-auth, a typed phrase and RISK-061. An automatic demotion (RISK-062) is recorded here too; only the user re-enables automation.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "command_id": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/uuidv7",
+          "description": "Originating command. Null for an automatic demotion."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "from_mode": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+          "description": "Null while P-37 was undecided."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "to_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode"
+    },
+    "cause": {
+      "type": "string",
+      "enum": [
+        "USER",
+        "DEMOTION"
+      ],
+      "description": "User change, or automatic demotion to human approval (RISK-062)."
+    },
+    "demotion_trigger": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 128,
+          "description": "RISK-062 cause: a trigger T2-T27, strategy demotion (RES-040), two consecutive rejected orders, or an EXE-060 breach."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "strategy": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/strategy_name",
+          "description": "Strategy concerned for a per-strategy auto_approved change under AUTO_APPROVED_STRATEGIES."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "actor": {
+      "$ref": "common.schema.json#/$defs/actor"
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "command_id",
+    "ts",
+    "from_mode",
+    "to_mode",
+    "cause",
+    "demotion_trigger",
+    "strategy",
+    "actor"
+  ]
+}

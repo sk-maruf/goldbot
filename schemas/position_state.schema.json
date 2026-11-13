@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/position_state.schema.json",
+  "title": "PositionState",
+  "description": "Ledger position (table positions_ledger, class C3; EXE-050). Only COMPLETED operations create ledger positions (EXE-015). A position is never shown as protected unless its SL is broker-confirmed (UI-015, GRD-030).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "ticket": {
+      "$ref": "common.schema.json#/$defs/mt5_ticket"
+    },
+    "op_id": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/uuidv7",
+          "description": "Opening operation. Null for adopted or foreign positions with no known intent (EXE-051)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "magic": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Magic number (EXE-022)."
+    },
+    "ownership": {
+      "type": "string",
+      "enum": [
+        "ENGINE",
+        "GUARDIAN",
+        "FOREIGN"
+      ],
+      "description": "From the magic number (EXP-009, GRD-018)."
+    },
+    "symbol": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Symbol name."
+    },
+    "side": {
+      "$ref": "common.schema.json#/$defs/side"
+    },
+    "volume": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg"
+    },
+    "open": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "Open price."
+    },
+    "sl": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Current SL. Null if none."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sl_broker_confirmed": {
+      "type": "boolean",
+      "description": "SL confirmed by read-back (RISK-031, HC-9)."
+    },
+    "sl_confirmed_at": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/utc_timestamp"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tp": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "state": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+      "description": "Position state. DATA_ARCHITECTURE §2 lists a state column but the spec names no values."
+    },
+    "reconciled_at": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/utc_timestamp",
+          "description": "Last reconciliation that covered this position."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "ticket",
+    "op_id",
+    "magic",
+    "ownership",
+    "symbol",
+    "side",
+    "volume",
+    "open",
+    "sl",
+    "sl_broker_confirmed",
+    "sl_confirmed_at",
+    "tp",
+    "state",
+    "reconciled_at"
+  ],
+  "allOf": [
+    {
+      "description": "A broker-confirmed SL has a value (UI-015, GRD-030).",
+      "if": {
+        "properties": {
+          "sl_broker_confirmed": {
+            "const": true
+          }
+        },
+        "required": [
+          "sl_broker_confirmed"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sl": {
+            "type": "string"
+          },
+          "sl_confirmed_at": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

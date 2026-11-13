@@ -11,7 +11,7 @@ dependency order in `prompts/01_MILESTONE_PROMPTS.md`). The M0 review runs once,
 | Part | Status | Review verdict | Date |
 | --- | --- | --- | --- |
 | M0a Read, contradictions, tooling, re-verification, decisions | DONE | at M0c | 2026-11-10 |
-| M0b ADRs, schemas, config examples | NOT STARTED | at M0c | |
+| M0b ADRs, schemas, config examples | DONE | at M0c (part review APPROVE WITH FIXES, fixes applied) | 2026-11-13 |
 | M0c UI spec, candidates, test plan, runbook, DoD, Phase 0, backlog, review | NOT STARTED | | |
 | S0 Feasibility spike (advisory, gates nothing) | NOT STARTED | n/a | |
 | M1 Foundation | NOT STARTED | | |
@@ -120,6 +120,10 @@ Unchanged from `quality/ASSUMPTIONS_AND_UNKNOWNS.md`; listed with what each need
 - **OPEN, user:** A-46 and A-47 (approve `PROPOSED` parameters and research thresholds); A-50
   legality (Phase 0); A-51, A-52 privacy law and record retention; A-09 swap-free conditions.
 - **Unknown by design:** A-55 whether any edge exists; A-67 and A-70 minimum-lot feasibility (S0).
+- **BLOCKED until the user names them (M3):** A-71 RiskEngine reason codes for EXP-004/005/006,
+  P-27, state not ACTIVE and unknown action type (found in the M0b review).
+- **OPEN, user (from M0b):** NTP servers (an outbound flow PRIVACY_POLICY §5 does not list;
+  `config/app.example.yaml` presets none, so the clock check fails closed until set).
 
 ## 8. Decision register D-01..D-12
 
@@ -178,8 +182,56 @@ Source: `Inspiration.jpg` in the repo root. Logged as CH-89; noted at the top of
 - **OPEN, user:** the brief and the M4 tests require a light theme as well. Keep a light theme, or
   dark only? Until answered, both are specified, dark first.
 
-## 11. Next
+## 11. M0b record (2026-11-13)
 
-M0b (kickoff §5 rows marked **b**): ADRs 001–013, `schemas/*.schema.json`,
-`config/risk_limits.example.yaml` with its schema, `config/session_exceptions.example.yaml`,
-`config/app.example.yaml`. Ends when every schema validates with `check-jsonschema`.
+**Delivered:** `docs/adr/001..013` (ADR-005 `Proposed`, pack default, not confirmed by user; ADR-012
+`Pending user decision (D-01)`); 54 schemas in `schemas/` and `schemas/mcp/` (29 records from
+DATA_ARCHITECTURE §3, `common.schema.json`, 12 MCP tools × input/output);
+`config/risk_limits.example.yaml` + `config/schema/risk_limits.schema.json`,
+`config/session_exceptions.example.yaml` (empty), `config/app.example.yaml` (`fixture_demo: false`,
+no symbol, no magic numbers, no secrets, LLM and MCP off). No `P-xx` value, D-01..D-12 decision or
+spec rule changed; every parameter has `approved_by_user: false`.
+
+**Checks run (all pass):**
+
+- `uvx check-jsonschema --check-metaschema schemas/*.json schemas/mcp/*.json
+  config/schema/risk_limits.schema.json` → ok.
+- `uvx check-jsonschema --schemafile config/schema/risk_limits.schema.json
+  config/risk_limits.example.yaml` → ok.
+- Independent assert script (not written by the authors): 13 ADRs with the five sections; every §3
+  name and MCP tool has a schema; `schema_version` and `env` present (Guardian IPC files carry no
+  `env` by GRD-010); no money, price or volume typed as a number; no secret-like field; every `$ref`
+  resolves; emergency states equal EXECUTION_SAFETY_SPEC §8; the 37 parameters' names, statuses and
+  numeric fixtures equal TRADING_RISK_SPEC §2; `TRADING_RISK_SPEC.md` differs from `main` only in T8.
+- Negative tests: the risk-limits schema rejects a relabelled status, a renamed parameter and an
+  approval with no value; ReconciliationResult rejects `clean: true` with an UNKNOWN op or a raised
+  trigger; RiskApprovedAction rejects a risk-increasing approval with no modelled loss or entry
+  price; OrderIntent rejects TIGHTEN_SL without SL or ticket; PositionState rejects a confirmed SL
+  with no value.
+
+**Independent review** (fresh `ecc:architect`, wrote nothing): APPROVE WITH FIXES. Fixed: B1 the
+risk-limits schema binds name, status and UI direction to each `P-xx` id and requires a value once a
+USER_DECISION_REQUIRED parameter is approved; B2 risk-increasing approvals require a modelled loss
+(RISK-011) and an entry price; B3 a clean reconciliation cannot carry UNKNOWN ops, unresolved
+mismatches or triggers; NB1 confirmed SL has a value; NB2 `raised_triggers` is a list; NB3 → A-71;
+NB4 per-action required fields; NB7 MCP inputs do not require `schema_version`; NB9 no preset NTP
+servers; NB10 ADR-005 status. Deferred to the M0c spec review (non-blocking): NB5 privacy-mode
+money in MCP outputs, NB6 structured values in `get_risk_status`, NB8 schemas for `app.yaml` and
+`session_exceptions.yaml`, NB11 `expires_mono` across restarts, NB12 per-command payload schemas
+(before M4), NB13 confidence as a JSON number in hashes.
+
+**Spec ambiguities raised by the authors and the reviewer (for M0c; none fixed here):** RISK-091
+vs API_SPEC §4 MODE_CHANGE/TIGHTEN_LIMIT; P-14 has no fixture yet EXE-020 needs a deviation; P-13
+component A null inside `min(A, B, C)`; whether reductions and emergency closes carry a
+RiskApprovedAction; `fixture_demo_mode: null` in fixture demo; editable `fixtures` block; Guardian
+files carry no `env` in a shared `Files\goldbot\` (Guardian topic, user question); EXE §2 state
+machine reused for closes; GRD-010 field named `schema` vs DATA-010 `schema_version`; GRD-016 clean
+reconciliation flag absent from the heartbeat; ADR-007 manual blackout schedule undefined; MCP-015
+128-char limit vs a 1,000-char journal note; P-32 fixture "= P-01".
+
+## 12. Next
+
+M0c (kickoff §5 rows marked **c**): `docs/UI_SPEC.md` from the Inspiration direction,
+STRATEGY_CANDIDATES, TEST_PLAN, RUNBOOK, Definition of Done, PHASE0_CLEARANCE, BACKLOG, then the
+full M0 adversarial review (`prompts/02_ADVERSARIAL_REVIEW_PROMPT.md`, spec mode) covering M0a–M0c,
+and the M0 stop with the user's question batch.

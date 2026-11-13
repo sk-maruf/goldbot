@@ -89,6 +89,7 @@
 | A-68 | The SMC and candlestick rules in `MARKET_INTELLIGENCE_SPEC.md` §4 are engineering definitions; there is no single industry-standard definition, so results apply only to the rules as written | ASSUMPTION | None needed; every rule is documented and versioned (MI-012) | M6a |
 | A-69 | The Fibonacci anchoring rules and the 33 chart-pattern geometries in `MARKET_INTELLIGENCE_SPEC.md` Part II are engineering definitions with research defaults; results apply only to the rules as written | ASSUMPTION | None needed; every rule is documented and versioned (MI-012) | M6c |
 | A-70 | At the cent minimum lot the stops level, freeze level and spread leave room for trailing and break-even modifications at the MI-172 minimum step; partial exits are infeasible at the minimum volume | **UNKNOWN** | Measure stops and freeze levels and spread in S0 and M2 discovery; MI-174 records `PARTIAL_INFEASIBLE`; the MI-175 backtests use the measured values | S0/M6e |
+| A-71 | TRADING_RISK_SPEC.md names no RiskEngine reason code for rejections by EXP-004, EXP-005, EXP-006, P-27, a trading state other than ACTIVE, or an unknown action type (RISK-002); `schemas/risk_decision.schema.json` has a closed enum and cannot record them (found in the M0b review) | **BLOCKED** | User approves the code names as a spec change (TRADING_RISK_SPEC §11); no code is invented | M3 |
 
 ## 5. User decision register (D-01..D-12) — none decided as of 2026-11-10
 

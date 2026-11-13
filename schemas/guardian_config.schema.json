@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/guardian_config.schema.json",
+  "title": "GuardianConfig",
+  "description": "guardian_config.json written by the engine for the Guardian (GUARDIAN_SAFETY_SPEC §3). Tighten-only (GRD-003). Contains no secret: integrity is a SHA-256 digest plus instance_id and seq (GRD-008). GUARDIAN_SAFETY_SPEC lists no env field for this file and none is included. The GRD-010/011 field 'schema' is represented by schema_version.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "instance_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{8,64}$",
+      "description": "Random per process start, not secret (GRD-008). Format not fixed by the spec."
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Strictly increasing sequence number (GRD-007)."
+    },
+    "utc_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Writer UTC time in ms. Not used for staleness (GRD-007)."
+    },
+    "limit_overrides": {
+      "$ref": "#/$defs/guardian_limit_overrides"
+    },
+    "session_exceptions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/session_exception"
+      },
+      "description": "Exceptions the engine passes for GRD-028."
+    },
+    "digest": {
+      "$ref": "common.schema.json#/$defs/sha256_hex",
+      "description": "SHA-256 of the canonical JSON without this field (GRD-008)."
+    }
+  },
+  "required": [
+    "schema_version",
+    "instance_id",
+    "seq",
+    "utc_ms",
+    "limit_overrides",
+    "session_exceptions",
+    "digest"
+  ],
+  "$defs": {
+    "guardian_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "daily_loss_pct": {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Daily-loss input, % (GRD-002, GRD-026)."
+        },
+        "drawdown_pct": {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Drawdown input, % (GRD-002, GRD-026)."
+        },
+        "max_open_positions": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum open positions (GRD-002)."
+        },
+        "max_volume_per_position": {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Maximum volume per position, lots (GRD-002)."
+        },
+        "emergency_sl_loss_budget_pct": {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Per-position emergency-SL loss budget, % of equity (GRD-020)."
+        },
+        "missing_stop_grace_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Missing-stop grace (P-22 default 10 s), in ms."
+        },
+        "close_deadline_before_session_end_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Guardian close deadline as time before session end, in ms (GRD-028). Must be >= 2 x the P-25 global deadline."
+        },
+        "emergency_retry": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "per_attempt_timeout_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Per-attempt timeout."
+            },
+            "backoff_ms": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Back-off step."
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "max_attempts": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Maximum attempts."
+            },
+            "global_deadline_ms": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Global deadline per run."
+            }
+          },
+          "required": [
+            "per_attempt_timeout_ms",
+            "backoff_ms",
+            "max_attempts",
+            "global_deadline_ms"
+          ],
+          "description": "Emergency retry settings, same structure as P-25 (GRD-002)."
+        },
+        "magic_engine": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MAGIC_ENGINE."
+        },
+        "magic_guardian": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MAGIC_GUARDIAN."
+        },
+        "rearm_counter": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "User re-arm counter (GRD-016)."
+        }
+      },
+      "required": [
+        "daily_loss_pct",
+        "drawdown_pct",
+        "max_open_positions",
+        "max_volume_per_position",
+        "emergency_sl_loss_budget_pct",
+        "missing_stop_grace_ms",
+        "close_deadline_before_session_end_ms",
+        "emergency_retry",
+        "magic_engine",
+        "magic_guardian",
+        "rearm_counter"
+      ],
+      "description": "Effective Guardian limits after GRD-003 (min of input and file for loss and size limits, max for grace and floors)."
+    },
+    "guardian_limit_overrides": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "daily_loss_pct": {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Daily-loss input, % (GRD-002, GRD-026)."
+        },
+        "drawdown_pct": {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Drawdown input, % (GRD-002, GRD-026)."
+        },
+        "max_open_positions": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum open positions (GRD-002)."
+        },
+        "max_volume_per_position": {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Maximum volume per position, lots (GRD-002)."
+        },
+        "emergency_sl_loss_budget_pct": {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Per-position emergency-SL loss budget, % of equity (GRD-020)."
+        },
+        "missing_stop_grace_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Missing-stop grace (P-22 default 10 s), in ms."
+        },
+        "close_deadline_before_session_end_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Guardian close deadline as time before session end, in ms (GRD-028). Must be >= 2 x the P-25 global deadline."
+        }
+      },
+      "required": [],
+      "description": "Tighten-only overrides (GRD-003). Loosening values are ignored and reported. magic numbers, retry settings and rearm_counter are not overridable here."
+    },
+    "session_exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+          "description": "Trading date in broker server time."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "full_close",
+            "early_close"
+          ]
+        },
+        "close_time_server": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^([01][0-9]|2[0-3]):[0-5][0-9]$",
+              "description": "Early close time in server time; null for full_close."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "date",
+        "type",
+        "close_time_server"
+      ],
+      "description": "One holiday or early close, mirroring config/session_exceptions.example.yaml (EXE-080, GRD-028)."
+    }
+  }
+}

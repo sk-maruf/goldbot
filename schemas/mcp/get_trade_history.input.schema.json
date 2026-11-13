@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/get_trade_history.input.schema.json",
+  "title": "get_trade_history input",
+  "description": "MCP read tool get_trade_history. to_utc - from_utc <= 90 days. Range bounds are validated server-side; JSON Schema cannot compare two dates. Strict validation: unknown fields are rejected with a generic error (MCP-015). Strings are capped at 128 characters unless the spec sets another cap.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "from_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp",
+      "description": "Start, UTC."
+    },
+    "to_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp",
+      "description": "End, UTC."
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500
+    }
+  },
+  "required": [
+    "from_utc",
+    "to_utc",
+    "limit"
+  ]
+}

@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/reconciliation_result.schema.json",
+  "title": "ReconciliationResult",
+  "description": "One reconciliation run (EXE-050/051). Reconciliation never trades to fix a mismatch (EXE-052). Any unresolved mismatch raises T7; unresolved for more than P-24 raises T8.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "started_at": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "finished_at": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/utc_timestamp",
+          "description": "Null while still running."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "STARTUP",
+        "AFTER_CONFIRMED_ACTION",
+        "RECONNECT",
+        "PERIODIC"
+      ],
+      "description": "Why it ran, transcribed from EXE-050 (start, after a confirmed action, after reconnect, every P-24)."
+    },
+    "clean": {
+      "type": "boolean",
+      "description": "True only with no unresolved mismatch and no UNKNOWN intent or position (HC-3)."
+    },
+    "mismatches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "MISSING_AT_BROKER",
+              "MISSING_IN_LEDGER",
+              "VOLUME_DIFF",
+              "SL_DIFF",
+              "TP_DIFF",
+              "FOREIGN"
+            ]
+          },
+          "ticket": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/mt5_ticket"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "op_id": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/uuidv7"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resolved": {
+            "type": "boolean"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "description": "How it was resolved, e.g. deal fetched and ledger updated (EXE-051)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "ticket",
+          "op_id",
+          "resolved",
+          "resolution"
+        ]
+      }
+    },
+    "unknown_op_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/uuidv7"
+      },
+      "description": "Operations still UNKNOWN or RECONCILING after this run."
+    },
+    "raised_triggers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "T7",
+          "T8",
+          "T14",
+          "T20"
+        ]
+      },
+      "description": "Triggers raised by this run; one run can raise several (e.g. T7 and T14). Empty if none."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "started_at",
+    "finished_at",
+    "reason",
+    "clean",
+    "mismatches",
+    "unknown_op_ids",
+    "raised_triggers"
+  ],
+  "allOf": [
+    {
+      "description": "clean=true is only valid with no UNKNOWN op, no unresolved mismatch and no trigger (HC-3, EXE-004, invariant 7).",
+      "if": {
+        "properties": {
+          "clean": {
+            "const": true
+          }
+        },
+        "required": [
+          "clean"
+        ]
+      },
+      "then": {
+        "properties": {
+          "unknown_op_ids": {
+            "maxItems": 0
+          },
+          "mismatches": {
+            "items": {
+              "properties": {
+                "resolved": {
+                  "const": true
+                }
+              }
+            }
+          },
+          "raised_triggers": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ]
+}

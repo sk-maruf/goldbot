@@ -1,0 +1,35 @@
+# GoldBot session exceptions: EXAMPLE FILE (M0b).
+#
+# The engine reads config/session_exceptions.yaml, which the user creates and maintains.
+# Why it exists: the Guardian's live session export (SymbolInfoSessionTrade) is a weekday template
+# only. It has no calendar dates, holidays or one-off early closes (EXE-080, TIME-040, A-59). The
+# user adds each holiday or early close here from the broker's own announcements.
+#
+# Rules:
+# - The list starts empty. Nothing in this file is a broker fact until the user enters it from a
+#   broker announcement.
+# - date is the trading date in broker server time, written as a quoted "YYYY-MM-DD".
+# - type is full_close (no trading that day) or early_close (the session ends early).
+# - close_time_server is the early close time in broker server time, quoted "HH:MM" (24 h). It is
+#   required for early_close and must be null for full_close. The engine converts it to UTC with
+#   the Guardian-exported server offset (TIME-030).
+# - source says where the entry came from (for example which broker announcement and when it was
+#   read). It is for the audit trail and has no behaviour.
+# - A known early close uses the longer P-19 / P-33 windows (EXE-085).
+# - If the live session export and this file disagree, the session calendar is UNKNOWN and entries
+#   are blocked (EXE-085).
+
+schema_version: "1.0.0"
+
+exceptions: []
+
+# ILLUSTRATIVE ONLY: the shape of one entry. These are placeholders, not real dates or times.
+# exceptions:
+#   - date: "YYYY-MM-DD"
+#     type: early_close
+#     close_time_server: "HH:MM"
+#     source: "Broker announcement <title>, read on YYYY-MM-DD"
+#   - date: "YYYY-MM-DD"
+#     type: full_close
+#     close_time_server: null
+#     source: "Broker announcement <title>, read on YYYY-MM-DD"

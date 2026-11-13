@@ -1,0 +1,386 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/order_intent.schema.json",
+  "title": "OrderIntent",
+  "description": "A broker operation keyed by op_id, the idempotency key (EXE-002; table order_intents, class C3). Persisted before any broker call; never resubmitted under the same op_id; a timeout is UNKNOWN, never a failure (EXE-013).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "op_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7",
+      "description": "Idempotency key, unique (EXE-002)."
+    },
+    "risk_approved_action_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "action": {
+      "$ref": "risk_approved_action.schema.json#/$defs/action"
+    },
+    "symbol": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Symbol name."
+    },
+    "side": {
+      "$ref": "common.schema.json#/$defs/side"
+    },
+    "ticket": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/mt5_ticket",
+          "description": "Target ticket for modifications and closes (EXE-002 item 5)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "volume": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Requested volume, quantized (RISK-022)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "price": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Requested price, current executable side (EXE-020)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sl": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Stop-loss. Mandatory for risk-increasing actions (RISK-030)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "tp": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "deviation": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Order deviation in points (P-14, BROKER_VERIFICATION_REQUIRED)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "magic": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "MAGIC_ENGINE (EXE-022)."
+    },
+    "comment": {
+      "type": "string",
+      "pattern": "^GB:[A-Z2-7]{10}$",
+      "description": "GB: + 10-character base32 prefix of op_id (EXE-020). Broker preservation is BLOCKED until M7 (EXE-021)."
+    },
+    "state": {
+      "$ref": "#/$defs/order_state"
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "$ref": "#/$defs/order_state"
+          },
+          "ts": {
+            "$ref": "common.schema.json#/$defs/utc_timestamp"
+          }
+        },
+        "required": [
+          "state",
+          "ts"
+        ]
+      },
+      "minItems": 1,
+      "description": "Every state transition with its timestamp, in order (EXE §2)."
+    },
+    "retcodes": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "common.schema.json#/$defs/mt5_retcode"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "description": "Retcodes received, in order; null for a None result."
+    },
+    "in_flight_lock": {
+      "type": "boolean",
+      "description": "Persisted in-flight lock (EXE-002 item 2)."
+    },
+    "reconciliation_evidence": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "queried_at": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/utc_timestamp"
+              },
+              "description": "Times of the EXE-014 queries (at least two, >= 5 s apart, for non-execution)."
+            },
+            "window_start": {
+              "$ref": "common.schema.json#/$defs/utc_timestamp"
+            },
+            "window_end": {
+              "$ref": "common.schema.json#/$defs/utc_timestamp"
+            },
+            "matched_by": {
+              "type": "string",
+              "enum": [
+                "COMMENT",
+                "FINGERPRINT"
+              ],
+              "description": "magic + op_id comment tag, or the EXE-014 fingerprint fallback."
+            },
+            "matching_deal_tickets": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/mt5_ticket"
+              }
+            },
+            "matching_position_tickets": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/mt5_ticket"
+              }
+            },
+            "matching_order_tickets": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/mt5_ticket"
+              }
+            },
+            "fingerprint_candidates": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of fingerprint candidates; more than one is ambiguous, never non-execution."
+            },
+            "terminal_connected_throughout": {
+              "type": "boolean"
+            },
+            "result": {
+              "type": "string",
+              "enum": [
+                "EXECUTED",
+                "NOT_EXECUTED",
+                "AMBIGUOUS"
+              ]
+            }
+          },
+          "required": [
+            "queried_at",
+            "window_start",
+            "window_end",
+            "matched_by",
+            "matching_deal_tickets",
+            "matching_position_tickets",
+            "matching_order_tickets",
+            "fingerprint_candidates",
+            "terminal_connected_throughout",
+            "result"
+          ],
+          "description": "EXE-014 evidence. Field names are this schema's; the spec describes the evidence only in prose."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "op_id",
+    "risk_approved_action_id",
+    "action",
+    "symbol",
+    "side",
+    "ticket",
+    "volume",
+    "price",
+    "sl",
+    "tp",
+    "deviation",
+    "magic",
+    "comment",
+    "state",
+    "transitions",
+    "retcodes",
+    "in_flight_lock",
+    "reconciliation_evidence"
+  ],
+  "$defs": {
+    "order_state": {
+      "type": "string",
+      "enum": [
+        "CREATED",
+        "PERSISTED",
+        "PRECHECKED",
+        "SUBMITTED",
+        "ACKNOWLEDGED",
+        "AWAITING_CONFIRMATION",
+        "CONFIRMED",
+        "PARTIALLY_FILLED",
+        "UNKNOWN",
+        "RECONCILING",
+        "CLOSED_REJECTED",
+        "CLOSED_NOT_EXECUTED",
+        "UNRESOLVED",
+        "COMPLETED",
+        "CONFIRMED_UNPROTECTED"
+      ],
+      "description": "Order-submission state (EXECUTION_SAFETY_SPEC §2). Final: COMPLETED, CLOSED_REJECTED, CLOSED_NOT_EXECUTED, UNRESOLVED (EXE-015)."
+    }
+  },
+  "if": {
+    "properties": {
+      "action": {
+        "enum": [
+          "OPEN_POSITION",
+          "ADD_VOLUME",
+          "PLACE_PENDING_ORDER"
+        ]
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "sl": {
+        "type": "string"
+      },
+      "volume": {
+        "type": "string"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "description": "TIGHTEN_SL targets a ticket and carries the new SL (RISK-030..034).",
+      "if": {
+        "properties": {
+          "action": {
+            "const": "TIGHTEN_SL"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "then": {
+        "properties": {
+          "sl": {
+            "type": "string"
+          },
+          "ticket": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          }
+        }
+      }
+    },
+    {
+      "description": "MODIFY_TP targets a ticket and carries the new TP.",
+      "if": {
+        "properties": {
+          "action": {
+            "const": "MODIFY_TP"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "then": {
+        "properties": {
+          "tp": {
+            "type": "string"
+          },
+          "ticket": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          }
+        }
+      }
+    },
+    {
+      "description": "Closes and cancellations target a ticket (EXE-002 item 5).",
+      "if": {
+        "properties": {
+          "action": {
+            "enum": [
+              "CLOSE_POSITION",
+              "PARTIAL_CLOSE",
+              "CANCEL_PENDING_ORDER"
+            ]
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ticket": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          }
+        }
+      }
+    }
+  ]
+}

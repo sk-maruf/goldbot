@@ -1,0 +1,75 @@
+# GoldBot application settings: EXAMPLE FILE (M0b).
+#
+# The engine reads config/app.yaml, which the user creates from this file. Non-risk settings only:
+# every risk number (P-01..P-37) lives in config/risk_limits.yaml.
+#
+# SECRETS: none belong here. Passwords, tokens and keys live in the OS keyring only (Windows
+# Credential Manager via keyring, SEC-001). They never appear in this file, Git, logs or reports.
+
+schema_version: "1.0.0"
+
+# One of LIVE, DEMO, BACKTEST, REPLAY (DATA-005). DEMO is a placeholder, not a decision.
+# LIVE refuses to start until docs/PHASE0_CLEARANCE.md says STATUS: CLEARED, every
+# USER_DECISION_REQUIRED parameter in config/risk_limits.yaml is approved (RISK-005), and the
+# release-readiness verdict for the pilot is GO (M10). See CLAUDE.md §3.17.
+env: DEMO
+
+# Fixture demo (RISK-066). When true, a DEMO run may use the labelled fixture values of unapproved
+# parameters, but only while MT5 itself reports a demo account (checked at start and after every
+# reconnect). fixture_demo: true with env: LIVE refuses to start. A fixture-demo run never approves
+# a parameter or a mode.
+fixture_demo: false
+
+# Entry authorization mode for one fixture-demo run, set by the user per run: MANUAL_APPROVAL,
+# AUTO_ALL or AUTO_APPROVED_STRATEGIES. Empty means not set. Never a default for LIVE or for DEMO
+# outside fixture demo (RISK-065); the real mode is P-37 in config/risk_limits.yaml.
+fixture_demo_mode: null
+
+paths:
+  # Relative paths resolve from the repository root.
+  data_dir: data
+  # One operational SQLite file per env. LIVE and DEMO must be separate files, and the engine
+  # refuses to open a database whose env header does not match its config (DATA-005).
+  databases:
+    LIVE: data/goldbot_live.sqlite
+    DEMO: data/goldbot_demo.sqlite
+    BACKTEST: data/goldbot_backtest.sqlite
+    REPLAY: data/goldbot_replay.sqlite
+  # Experiment registry and research store (DATA_ARCHITECTURE.md §1).
+  research_db: data/research.db
+  research_store_dir: data/research
+  logs_dir: logs
+  reports_dir: reports
+
+api:
+  # Loopback only (API-001, ADR-013). The startup self-check refuses any non-loopback bind
+  # (API-002).
+  bind_host: 127.0.0.1
+  # Placeholder: the user picks a free local port.
+  port: null
+
+mt5:
+  # Not set here. The gold symbol is discovered from the live account in M2 and picked by the user
+  # from the discovered list (CENT-003).
+  symbol: null
+  # Magic numbers for engine orders and for Guardian protective actions. Configured once by the
+  # user and audited (EXE-022); anything else on the account is foreign (EXP-009).
+  magic_engine: null
+  magic_guardian: null
+
+ntp:
+  # OPEN for the user: NTP servers are an outbound flow that PRIVACY_POLICY.md §5 does not yet list,
+  # so none is preset. TIME-010 needs at least two servers; offsets are checked against P-16.
+  # Until the user sets them, the clock check fails and trading stays blocked (fail closed).
+  servers: []
+
+llm:
+  # Disabled (LLM-004). The LLM is advisory only and never touches the order path (LLM-001). Its
+  # spend limit is P-28 in config/risk_limits.yaml. Enabling it needs recorded consent (PRV-018).
+  enabled: false
+  provider: null
+
+mcp:
+  # Disabled. Optional stdio server only; it never executes, modifies or closes orders and never
+  # changes risk, Guardian or safety state (MCP-001..030). Not built until the user chooses it.
+  enabled: false

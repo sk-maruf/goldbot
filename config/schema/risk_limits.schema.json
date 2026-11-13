@@ -1,0 +1,1643 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GoldBot risk limits (config/risk_limits.yaml)",
+  "description": "P-01..P-37 from TRADING_RISK_SPEC.md §2 with the RISK-092 approval record. Fixture values live only in 'fixtures' (RISK-005). Loosening needs file edit + restart + typed confirmation (RISK-090).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_name",
+    "narrowing_rules",
+    "params",
+    "fixtures"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "profile_name": {
+      "description": "Optional label for a user-approved set of P-xx values; no behaviour of its own (MI-061).",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "narrowing_rules": {
+      "description": "RISK-067 schedule narrowing rules. Empty until the user decides one. A rule only moves an entry from automatic to human approval.",
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "params": {
+      "type": "array",
+      "minItems": 37,
+      "maxItems": 37,
+      "items": {
+        "$ref": "#/$defs/param"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-01"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-02"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-03"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-04"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-05"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-06"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-07"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-08"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-09"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-10"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-11"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-12"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-13"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-14"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-15"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-16"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-17"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-18"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-19"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-20"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-21"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-22"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-23"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-24"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-25"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-26"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-27"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-28"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-29"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-30"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-31"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-32"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-33"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-34"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-35"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-36"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        {
+          "contains": {
+            "properties": {
+              "id": {
+                "const": "P-37"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        }
+      ]
+    },
+    "fixtures": {
+      "description": "Test values only, NOT approved settings (RISK-005). Keyed by P-id.",
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^P-(0[1-9]|[12][0-9]|3[0-7])$"
+      },
+      "required": [
+        "P-01",
+        "P-02",
+        "P-03",
+        "P-04",
+        "P-05",
+        "P-06",
+        "P-07",
+        "P-08",
+        "P-09",
+        "P-10",
+        "P-11",
+        "P-12",
+        "P-13",
+        "P-15",
+        "P-16",
+        "P-17",
+        "P-18",
+        "P-19",
+        "P-20",
+        "P-21",
+        "P-22",
+        "P-23",
+        "P-24",
+        "P-25",
+        "P-26",
+        "P-27",
+        "P-28",
+        "P-29",
+        "P-30",
+        "P-31",
+        "P-32",
+        "P-33",
+        "P-34",
+        "P-35",
+        "P-36",
+        "P-37"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/no_float"
+      }
+    }
+  },
+  "$defs": {
+    "no_float": {
+      "description": "Decimal quantities are quoted strings; non-integer JSON numbers are refused (RISK-020..024).",
+      "anyOf": [
+        {
+          "type": [
+            "null",
+            "string",
+            "integer",
+            "boolean"
+          ]
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/no_float"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/no_float"
+          }
+        }
+      ]
+    },
+    "param": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "status",
+        "unit",
+        "ui_direction",
+        "recommended",
+        "value",
+        "approved_by_user",
+        "approved_on",
+        "reason"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^P-(0[1-9]|[12][0-9]|3[0-7])$"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "status": {
+          "enum": [
+            "USER_DECISION_REQUIRED",
+            "PROPOSED",
+            "BROKER_VERIFICATION_REQUIRED"
+          ]
+        },
+        "status_note": {
+          "type": "string"
+        },
+        "measured_in": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ui_direction": {
+          "enum": [
+            "tighten",
+            "widen only",
+            "none"
+          ]
+        },
+        "recommended": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value": {
+          "$ref": "#/$defs/no_float"
+        },
+        "approved_by_user": {
+          "type": "boolean"
+        },
+        "approved_on": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "description": "Not approved -> no approval date (RISK-092).",
+          "if": {
+            "properties": {
+              "approved_by_user": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "approved_on": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "description": "Approved -> approval date (quoted YYYY-MM-DD) and a reason (RISK-092).",
+          "if": {
+            "properties": {
+              "approved_by_user": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "approved_on": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "reason": {
+                "minLength": 1
+              }
+            }
+          }
+        },
+        {
+          "description": "An unapproved USER_DECISION_REQUIRED parameter has no value; a fixture or recommendation never fills it (RISK-005, RISK-092).",
+          "if": {
+            "properties": {
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "approved_by_user": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "description": "An approved USER_DECISION_REQUIRED parameter must carry a value (RISK-005, RISK-092).",
+          "if": {
+            "properties": {
+              "approved_by_user": {
+                "const": true
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              }
+            },
+            "required": [
+              "approved_by_user",
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-01"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "risk_per_trade"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-02"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "daily_loss_intervention"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-03"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "weekly_loss_intervention"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-04"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_drawdown_intervention"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-05"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_open_positions"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-06"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_pending_orders"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-07"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "consecutive_losses_entry_stop"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-08"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "consecutive_losses_suspend"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-09"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_effective_leverage"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-10"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_margin_utilisation"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-11"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "min_projected_margin_level"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-12"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "account_leverage_cap"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-13"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_spread"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-14"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_entry_deviation"
+              },
+              "status": {
+                "const": "BROKER_VERIFICATION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-15"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "tick_staleness_limit"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-16"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "clock_offset_limits"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-17"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "server_offset_tolerance"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-18"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "news_blackout"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "widen only"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-19"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "pre_close_entry_restriction"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "widen only"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-20"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "engine_heartbeat_interval"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "none"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-21"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "guardian_staleness"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-22"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "missing_stop_response"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-23"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "approval_expiry"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-24"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "reconciliation"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-25"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "emergency_operation_timing"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-26"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "stop_slippage_allowance"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-27"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "min_reward_risk"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-28"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "llm_monthly_spend_cap"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-29"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_signal_age"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-30"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "foreign_activity_policy"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "none"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-31"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "max_aggregate_open_risk"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-32"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "strategy_risk_budget"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-33"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "session_close_deadline"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "widen only"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-34"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "auto_recovery"
+              },
+              "status": {
+                "const": "PROPOSED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-35"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "daily_profit_target_behaviour"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "none"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-36"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "consecutive_loss_risk_reduction"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "tighten"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "id": {
+                "const": "P-37"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "name": {
+                "const": "entry_authorization_mode"
+              },
+              "status": {
+                "const": "USER_DECISION_REQUIRED"
+              },
+              "ui_direction": {
+                "const": "none"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

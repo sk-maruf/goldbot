@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/command.schema.json",
+  "title": "Command",
+  "description": "A command row written by the api and executed by the engine (API_SPEC §4, DATA-001; table commands). The engine re-validates every command (API-020). There is no command to loosen limits, change leverage, place arbitrary orders or read secrets.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "client_uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Client-supplied UUID; a duplicate returns the original result (API-021). Version not fixed by the spec."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "APPROVE",
+        "REJECT",
+        "ENTRY_STOP",
+        "CLEAR_STATE",
+        "CANCEL_PENDING",
+        "EMERGENCY_LIQUIDATE",
+        "MODE_CHANGE",
+        "STRATEGY_AUTO_APPROVAL",
+        "MCP_ADMIN_APPROVE",
+        "MCP_CLIENT_REGISTER",
+        "MCP_CLIENT_REVOKE",
+        "TIGHTEN_LIMIT",
+        "CONSENT"
+      ],
+      "description": "Command names from API_SPEC §4 (MCP_CLIENT_REGISTER / REVOKE split into two)."
+    },
+    "payload_json": {
+      "type": "object",
+      "description": "Command payload. Per-type payload schemas are not specified yet. Must never contain a secret, TOTP code or token."
+    },
+    "actor": {
+      "$ref": "common.schema.json#/$defs/actor"
+    },
+    "auth_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": {
+          "type": "string",
+          "const": "ui:command"
+        },
+        "reauthenticated_at": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/utc_timestamp",
+              "description": "Time of the TOTP re-authentication when API-013 requires one. The code itself is never stored."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "scope",
+        "reauthenticated_at"
+      ],
+      "description": "Authorization context; the session token is never stored here."
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "status": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+      "description": "Command status. The spec names no values."
+    },
+    "result": {
+      "anyOf": [
+        {
+          "type": "object",
+          "description": "Engine result. Shape not specified."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "client_uuid",
+    "type",
+    "payload_json",
+    "actor",
+    "auth_context",
+    "ts",
+    "status",
+    "result"
+  ]
+}

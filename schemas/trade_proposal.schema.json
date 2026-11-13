@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/trade_proposal.schema.json",
+  "title": "TradeProposal",
+  "description": "An entry awaiting human approval (TRADING_RISK_SPEC §9, SYSTEM_ARCHITECTURE §5; table proposals). proposal_hash = sha256(canonical proposal JSON) (API-030). Approval re-runs the RiskEngine (RISK-004). The approval token itself is never stored here (C4).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "decision_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "signal_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "risk_decision_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "proposal_hash": {
+      "$ref": "common.schema.json#/$defs/sha256_hex"
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "expires_mono": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Expiry on the C2 monotonic clock (P-23, TIME-015), nanoseconds as time.monotonic_ns(). The unit is not named in the spec."
+    },
+    "status": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{0,31}$",
+      "description": "Proposal status. The spec names no values for proposals."
+    },
+    "strategy": {
+      "$ref": "common.schema.json#/$defs/strategy_name"
+    },
+    "strategy_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "side": {
+      "$ref": "common.schema.json#/$defs/side"
+    },
+    "volume": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg"
+    },
+    "entry": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg"
+    },
+    "sl": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg"
+    },
+    "tp": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "modelled_loss": {
+      "$ref": "common.schema.json#/$defs/money"
+    },
+    "rationale": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Deterministic rationale shown on the approval card (LLM-005, MI-046)."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "decision_id",
+    "signal_id",
+    "risk_decision_id",
+    "proposal_hash",
+    "ts",
+    "expires_mono",
+    "status",
+    "strategy",
+    "strategy_version",
+    "side",
+    "volume",
+    "entry",
+    "sl",
+    "tp",
+    "modelled_loss",
+    "rationale"
+  ]
+}

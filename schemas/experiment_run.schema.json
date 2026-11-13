@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/experiment_run.schema.json",
+  "title": "ExperimentRun",
+  "description": "One research run in the append-only, hash-chained registry (RES-010; research.db table experiments). Failures included. Rows are never deleted (RES-012).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "run_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "strategy": {
+      "$ref": "common.schema.json#/$defs/strategy_name"
+    },
+    "version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "code_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40,64}$",
+      "description": "Code hash (git SHA-1 or SHA-256; not fixed by the spec)."
+    },
+    "data_hash": {
+      "$ref": "common.schema.json#/$defs/sha256_hex"
+    },
+    "config": {
+      "type": "object",
+      "description": "Run configuration. Shape not specified."
+    },
+    "param_set": {
+      "type": "object",
+      "description": "Parameter set. Shape not specified."
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Random seed."
+    },
+    "split": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$",
+      "description": "Data split (RES-005/006, e.g. training, walk-forward fold, holdout). Values not fixed by the spec."
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "PT0",
+        "PT1"
+      ],
+      "description": "RES-010 allows PT0/PT1 only."
+    },
+    "metrics": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      },
+      "additionalProperties": {
+        "$ref": "common.schema.json#/$defs/decimal"
+      },
+      "description": "Metric name to decimal string."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "failed",
+        "aborted"
+      ]
+    },
+    "holdout_touched": {
+      "type": "boolean"
+    },
+    "holdout_touched_at": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/utc_timestamp",
+          "description": "When the holdout was accessed (RES-005)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "holdout_git_hash": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40,64}$",
+          "description": "Git hash at holdout access (RES-005)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "origin": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "mcp"
+          ],
+          "description": "origin=mcp for runs queued through queue_research_job (MCP §4.1). Null otherwise; the spec names no other value."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 4000,
+          "description": "Free-text notes written by the user or system."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "prev_hash": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/sha256_hex"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "hash": {
+      "$ref": "common.schema.json#/$defs/sha256_hex"
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "run_id",
+    "ts",
+    "strategy",
+    "version",
+    "code_hash",
+    "data_hash",
+    "config",
+    "param_set",
+    "seed",
+    "split",
+    "tier",
+    "metrics",
+    "status",
+    "holdout_touched",
+    "holdout_touched_at",
+    "holdout_git_hash",
+    "origin",
+    "notes",
+    "prev_hash",
+    "hash"
+  ]
+}

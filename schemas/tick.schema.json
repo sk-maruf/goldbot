@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/tick.schema.json",
+  "title": "Tick",
+  "description": "One polled tick (TIME-020; table ticks_sample, class C1). time_msc is the MT5 tick timestamp (clock C5), used for ordering only and never as 'now' (TIME-001). Freshness uses recv_mono (C3).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "symbol": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Symbol name."
+    },
+    "ts_msc": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "tick.time_msc: milliseconds since the Unix epoch as MT5 reports it (C5). Its zone interpretation is checked in M2 (TIME-005)."
+    },
+    "recv_mono": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "C2 monotonic reading when the engine first saw this tick (C3, TIME-020). Python time.monotonic_ns(), i.e. nanoseconds; the unit is not named in DATA_ARCHITECTURE §2."
+    },
+    "bid": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "Bid price."
+    },
+    "ask": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "Ask price. CENT-017 expects ask >= bid; a schema cannot compare the two."
+    },
+    "flags": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "tick.flags, raw MT5 integer."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "symbol",
+    "ts_msc",
+    "recv_mono",
+    "bid",
+    "ask",
+    "flags"
+  ]
+}

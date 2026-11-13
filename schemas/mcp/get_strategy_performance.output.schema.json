@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/get_strategy_performance.output.schema.json",
+  "title": "get_strategy_performance output",
+  "description": "Strategy performance (MCP §4.0). Win rate is not optimised and expectancy is in R. Every output carries env, tier, as_of_utc and health (MCP §4.0). No C4 data ever; the login only hashed (MCP-040). Errors use the generic MCP-042 shape, which is outside this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "env": {
+      "$ref": "../common.schema.json#/$defs/env"
+    },
+    "tier": {
+      "anyOf": [
+        {
+          "$ref": "../common.schema.json#/$defs/tier",
+          "description": "The requested tier (PT1/PT2/PT3); never mixed (BT-001)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "as_of_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp"
+    },
+    "health": {
+      "$ref": "../common.schema.json#/$defs/health_state",
+      "description": "Aggregate health at as_of_utc, so stale or unhealthy data is never mistaken for live (MCP §4.0)."
+    },
+    "params": {
+      "$ref": "../common.schema.json#/$defs/params_label",
+      "description": "FIXTURE when fixture parameters are in effect (RISK-066)."
+    },
+    "strategy": {
+      "$ref": "../common.schema.json#/$defs/strategy_name"
+    },
+    "strategy_version": {
+      "$ref": "../common.schema.json#/$defs/semver"
+    },
+    "expectancy_r": {
+      "$ref": "../common.schema.json#/$defs/decimal"
+    },
+    "ci_low_r": {
+      "$ref": "../common.schema.json#/$defs/decimal",
+      "description": "Lower bound of the confidence interval. The level (95% per BACKTESTING_SPEC §6) is not stated in MCP §4.0."
+    },
+    "ci_high_r": {
+      "$ref": "../common.schema.json#/$defs/decimal"
+    },
+    "trade_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Closed trades."
+    },
+    "min_volume_rejection_rate": {
+      "$ref": "../common.schema.json#/$defs/decimal_nonneg",
+      "description": "CENT-030 rate as a fraction 0..1."
+    },
+    "strategy_state": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "WATCH",
+        "PAUSED",
+        "RETIRED"
+      ],
+      "description": "RES-040."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "tier",
+    "as_of_utc",
+    "health",
+    "strategy",
+    "strategy_version",
+    "expectancy_r",
+    "ci_low_r",
+    "ci_high_r",
+    "trade_count",
+    "min_volume_rejection_rate",
+    "strategy_state"
+  ]
+}

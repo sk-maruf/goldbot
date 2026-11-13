@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/evidence.schema.json",
+  "title": "Evidence",
+  "description": "One market-intelligence module output (MI-010). Pure, no lookahead: uses only data with timestamps <= detected_at (MI-013). An emitted record is never altered; an invalidation is a new record that references it.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "evidence_id": {
+      "$ref": "common.schema.json#/$defs/evidence_id"
+    },
+    "module": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Owning module (MI-020). The spec names modules in prose only, so no enum."
+    },
+    "module_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "concept": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{0,63}$",
+      "description": "Concept name from MARKET_INTELLIGENCE_SPEC §4 (e.g. REVERSAL_WARNING, REVERSAL_CONFIRMED). The spec gives no closed identifier list."
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "BULLISH",
+        "BEARISH",
+        "NEUTRAL"
+      ]
+    },
+    "timeframe": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/timeframe",
+          "description": "Timeframe of the concept. Null only for tick-level concepts (MI-013); MI-010 does not say how those are labelled."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "detected_at": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp",
+      "description": "UTC time the evidence first became knowable (MI-013)."
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "times": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/utc_timestamp"
+          },
+          "description": "Bar open times that define the evidence."
+        },
+        "prices": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/decimal_nonneg"
+          },
+          "description": "Price levels that define the evidence."
+        }
+      },
+      "required": [
+        "times",
+        "prices"
+      ],
+      "description": "Bar open times and price levels that define the evidence (MI-010)."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Confidence SCORE in [0, 1] from a deterministic function of the concept's own geometry, rounded to 4 decimals (MI-011). It is not a probability and never a win chance."
+    },
+    "data_quality": {
+      "$ref": "common.schema.json#/$defs/data_quality"
+    },
+    "invalidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "price": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/decimal_nonneg"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "time": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/utc_timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "condition": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Plain statement of the cancelling condition."
+        }
+      },
+      "required": [
+        "price",
+        "time",
+        "condition"
+      ],
+      "description": "The price or time condition that cancels the evidence (MI-010). The spec does not structure it further."
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/utc_timestamp",
+          "description": "Expiry time. Nullable because MI-010 does not say every concept expires."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/reason_code"
+      },
+      "description": "Reason codes."
+    },
+    "context": {
+      "type": "object",
+      "description": "Descriptive context fields only (MI-032): references and descriptors, never scored. The spec lists the kinds of descriptor but not their names or types.",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]{0,63}$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string",
+            "maxLength": 128
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxItems": 64
+          }
+        ]
+      }
+    },
+    "context_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidence_id"
+      },
+      "description": "Other evidence_ids used as context (MI-032)."
+    },
+    "derived_from": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidence_id"
+      },
+      "description": "Component evidence_ids of a derived record (MI-033/044)."
+    },
+    "params_hash": {
+      "$ref": "common.schema.json#/$defs/sha256_hex",
+      "description": "Hash of the strategy-version parameters used (MI-012). Hash function assumed SHA-256; the spec does not fix it."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "evidence_id",
+    "module",
+    "module_version",
+    "concept",
+    "direction",
+    "timeframe",
+    "detected_at",
+    "anchor",
+    "confidence",
+    "data_quality",
+    "invalidation",
+    "expires_at",
+    "reasons",
+    "context",
+    "context_refs",
+    "derived_from",
+    "params_hash"
+  ]
+}

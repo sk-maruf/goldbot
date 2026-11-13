@@ -1,0 +1,355 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/emergency_action.schema.json",
+  "title": "EmergencyAction",
+  "description": "CANCEL_PENDING or EMERGENCY_LIQUIDATE with its lifecycle (EXECUTION_SAFETY_SPEC §8; table emergency_actions, class C3). Best-effort (EMG-001): a request never implies completion, and fills are not guaranteed. ENTRY_STOP is a trading state, not an emergency action type.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "CANCEL_PENDING",
+        "EMERGENCY_LIQUIDATE"
+      ]
+    },
+    "requester": {
+      "type": "string",
+      "enum": [
+        "USER",
+        "RISK_ENGINE",
+        "GUARDIAN"
+      ],
+      "description": "Who may request, per the §8 table."
+    },
+    "trigger": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/trigger_id",
+          "description": "Trigger that requested it (T2-T4, T17, T25, T26). Null for a plain user request."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmation_steps": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Confirmation steps completed (two-step for user requests)."
+        },
+        "reauthenticated": {
+          "type": "boolean",
+          "description": "TOTP re-authentication done (required for user EMERGENCY_LIQUIDATE, API-013). The TOTP code is never stored."
+        },
+        "authorized_at": {
+          "anyOf": [
+            {
+              "$ref": "common.schema.json#/$defs/utc_timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "confirmation_steps",
+        "reauthenticated",
+        "authorized_at"
+      ],
+      "description": "Authorization record."
+    },
+    "lifecycle_state": {
+      "type": "string",
+      "enum": [
+        "REQUESTED",
+        "AUTHORIZED",
+        "SUBMITTED",
+        "CONFIRMED",
+        "PARTIAL",
+        "FAILED_DEADLINE",
+        "BLOCKED_MARKET_CLOSED",
+        "RECONCILED"
+      ]
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "REQUESTED",
+              "AUTHORIZED",
+              "SUBMITTED",
+              "CONFIRMED",
+              "PARTIAL",
+              "FAILED_DEADLINE",
+              "BLOCKED_MARKET_CLOSED",
+              "RECONCILED"
+            ]
+          },
+          "ts": {
+            "$ref": "common.schema.json#/$defs/utc_timestamp"
+          }
+        },
+        "required": [
+          "state",
+          "ts"
+        ]
+      },
+      "minItems": 1
+    },
+    "requested_at": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "global_deadline_at": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp",
+      "description": "Wall-clock display of the P-25 global deadline (60 s). The deadline itself is measured on C2 (TIME-015)."
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "include_foreign": {
+          "type": "boolean",
+          "description": "User ticked 'include foreign positions' (EMG-030)."
+        },
+        "tickets": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          },
+          "description": "In-scope orders or positions."
+        }
+      },
+      "required": [
+        "include_foreign",
+        "tickets"
+      ]
+    },
+    "attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attempt": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Attempt number, 1..5 (P-25).",
+            "maximum": 5
+          },
+          "ticket": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          },
+          "started_at": {
+            "$ref": "common.schema.json#/$defs/utc_timestamp"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/utc_timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retcode": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/mt5_retcode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requested_price": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/decimal_nonneg"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "fill_price": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/decimal_nonneg"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "slippage": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/money"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "residual_volume": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/decimal_nonneg"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "attempt",
+          "ticket",
+          "started_at",
+          "ended_at",
+          "retcode",
+          "requested_price",
+          "fill_price",
+          "slippage",
+          "residual_volume"
+        ]
+      },
+      "maxItems": 255
+    },
+    "result": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Outcome summary."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "unresolved_exposure": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ticket": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          },
+          "volume": {
+            "$ref": "common.schema.json#/$defs/decimal_nonneg"
+          },
+          "sl_status": {
+            "type": "string",
+            "enum": [
+              "BROKER_CONFIRMED",
+              "NOT_CONFIRMED",
+              "UNKNOWN"
+            ],
+            "description": "Last known SL status (EXE-084, §8)."
+          },
+          "sl_confirmed_at": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/utc_timestamp"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "ticket",
+          "volume",
+          "sl_status",
+          "sl_confirmed_at"
+        ]
+      },
+      "description": "UNRESOLVED EXPOSURE list on FAILED_DEADLINE (EXE-084)."
+    },
+    "reconciliation": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reconciled_at": {
+              "$ref": "common.schema.json#/$defs/utc_timestamp"
+            },
+            "remaining_tickets": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/mt5_ticket"
+              },
+              "description": "In-scope orders or positions still present at the broker."
+            }
+          },
+          "required": [
+            "reconciled_at",
+            "remaining_tickets"
+          ],
+          "description": "The mandatory RECONCILED step: broker state re-read before the record closes."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "type",
+    "requester",
+    "trigger",
+    "authorization",
+    "lifecycle_state",
+    "transitions",
+    "requested_at",
+    "global_deadline_at",
+    "scope",
+    "attempts",
+    "result",
+    "unresolved_exposure",
+    "reconciliation"
+  ]
+}

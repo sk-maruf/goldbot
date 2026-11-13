@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/get_strategy_performance.input.schema.json",
+  "title": "get_strategy_performance input",
+  "description": "MCP read tool get_strategy_performance. Strict validation: unknown fields are rejected with a generic error (MCP-015). Strings are capped at 128 characters unless the spec sets another cap.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "strategy": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$",
+      "description": "Strategy. MCP §4.0 makes this an enum; the strategy set is not decided (D-08), so the server substitutes the enum at runtime."
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "PT1",
+        "PT2",
+        "PT3"
+      ]
+    }
+  },
+  "required": [
+    "strategy",
+    "tier"
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/annotate_trade_journal.output.schema.json",
+  "title": "annotate_trade_journal output",
+  "description": "Admin action annotate_trade_journal (mcp:admin:annotate_journal). The call only creates a PENDING admin request that the user approves in the dashboard within 5 minutes, otherwise it expires (MCP §4.1). Nothing executes from MCP. Every output carries env, tier, as_of_utc and health (MCP §4.0). No C4 data ever; the login only hashed (MCP-040). Errors use the generic MCP-042 shape, which is outside this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "env": {
+      "$ref": "../common.schema.json#/$defs/env"
+    },
+    "tier": {
+      "anyOf": [
+        {
+          "$ref": "../common.schema.json#/$defs/tier",
+          "description": "Null: this output has no performance tier."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "as_of_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp"
+    },
+    "health": {
+      "$ref": "../common.schema.json#/$defs/health_state",
+      "description": "Aggregate health at as_of_utc, so stale or unhealthy data is never mistaken for live (MCP §4.0)."
+    },
+    "params": {
+      "$ref": "../common.schema.json#/$defs/params_label",
+      "description": "FIXTURE when fixture parameters are in effect (RISK-066)."
+    },
+    "request_id": {
+      "$ref": "../common.schema.json#/$defs/uuidv7"
+    },
+    "action": {
+      "type": "string",
+      "const": "annotate_trade_journal"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING",
+        "APPROVED",
+        "EXPIRED",
+        "REJECTED",
+        "DONE"
+      ],
+      "description": "admin_requests status (DATA_ARCHITECTURE §2)."
+    },
+    "args_hash": {
+      "$ref": "../common.schema.json#/$defs/sha256_hex"
+    },
+    "expires_at_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp"
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "tier",
+    "as_of_utc",
+    "health",
+    "request_id",
+    "action",
+    "status",
+    "args_hash",
+    "expires_at_utc"
+  ]
+}

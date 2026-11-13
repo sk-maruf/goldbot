@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/generate_report.input.schema.json",
+  "title": "generate_report input",
+  "description": "MCP admin action generate_report (mcp:admin:generate_report). to_utc - from_utc <= 90 days. Range bounds are validated server-side; JSON Schema cannot compare two dates. Strict validation: unknown fields are rejected with a generic error (MCP-015). Strings are capped at 128 characters unless the spec sets another cap.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "strategy",
+        "risk"
+      ]
+    },
+    "from_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp",
+      "description": "Start, UTC."
+    },
+    "to_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp",
+      "description": "End, UTC."
+    }
+  },
+  "required": [
+    "report_type",
+    "from_utc",
+    "to_utc"
+  ]
+}

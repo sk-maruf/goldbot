@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/bar.schema.json",
+  "title": "Bar",
+  "description": "Bar built from ticks (BT-032, MI-016) for signal calculation only. D1 and session boundaries follow the trade-server day (TIME-030/040). The spec does not say which quote (bid, ask or mid) bars are built from; that is open, so no price-basis field is defined.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "symbol": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Symbol name."
+    },
+    "timeframe": {
+      "$ref": "common.schema.json#/$defs/timeframe"
+    },
+    "open_time": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp",
+      "description": "Bar open time, UTC."
+    },
+    "close_time": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp",
+      "description": "Bar close time, UTC (end of the bar's interval)."
+    },
+    "closed": {
+      "type": "boolean",
+      "description": "True once the bar has closed. Bar-based concepts use closed bars only (MI-013)."
+    },
+    "open": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg"
+    },
+    "high": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg"
+    },
+    "low": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg"
+    },
+    "close": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg"
+    },
+    "tick_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of ticks in the bar. TICK_ACTIVITY_PROXY only, not traded volume (MI-021)."
+    },
+    "data_quality": {
+      "$ref": "common.schema.json#/$defs/data_quality",
+      "description": "Bar data quality (MI-015, BT-013)."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "symbol",
+    "timeframe",
+    "open_time",
+    "close_time",
+    "closed",
+    "open",
+    "high",
+    "low",
+    "close",
+    "tick_count",
+    "data_quality"
+  ]
+}

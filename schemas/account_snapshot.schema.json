@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/account_snapshot.schema.json",
+  "title": "AccountSnapshot",
+  "description": "Account snapshot (EXP-001, CENT-002; table account_snapshots, class C3). The login is never stored in clear: only HMAC-SHA256(local_salt, login)[:12] plus salt_version (PRV-011/012). The salt itself never appears. MT5 enum fields are raw integers.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp",
+      "description": "When account_info() was read (C1)."
+    },
+    "login_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}$",
+      "description": "First 12 hex characters of HMAC-SHA256(local_salt, login) (PRV-011)."
+    },
+    "salt_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Version label of the local_salt used (PRV-012). A label, not the salt."
+    },
+    "server": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "account_info().server (C3)."
+    },
+    "company": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "account_info().company."
+    },
+    "currency": {
+      "$ref": "common.schema.json#/$defs/currency",
+      "description": "account_info().currency; all risk maths use it (RISK-023)."
+    },
+    "account_class": {
+      "type": "string",
+      "enum": [
+        "CENT",
+        "STANDARD",
+        "UNKNOWN"
+      ],
+      "description": "Derived from MT5 data only (CENT-002). UNKNOWN leads to T15."
+    },
+    "trade_mode": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "account_info().trade_mode, raw MT5 enum integer (demo/contest/real; RISK-066)."
+    },
+    "leverage": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "account_info().leverage, the N of 1:N (EXP-007, P-12)."
+    },
+    "balance": {
+      "$ref": "common.schema.json#/$defs/money",
+      "description": "Balance; shown, never used for sizing."
+    },
+    "equity": {
+      "$ref": "common.schema.json#/$defs/money",
+      "description": "Equity; the basis for risk (RISK-010)."
+    },
+    "margin": {
+      "$ref": "common.schema.json#/$defs/money",
+      "description": "Used margin."
+    },
+    "margin_free": {
+      "$ref": "common.schema.json#/$defs/money",
+      "description": "Free margin."
+    },
+    "margin_level": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "Margin level in percent as MT5 reports it."
+    },
+    "margin_so_mode": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "account_info().margin_so_mode, raw MT5 enum integer; decides whether margin_so_call/margin_so_so are percent or money."
+    },
+    "margin_so_call": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "Margin-call level, in the unit selected by margin_so_mode."
+    },
+    "margin_so_so": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "Stop-out level, in the unit selected by margin_so_mode (EXP-006)."
+    },
+    "trade_allowed": {
+      "type": "boolean",
+      "description": "account_info().trade_allowed (EXE-004)."
+    },
+    "trade_expert": {
+      "type": "boolean",
+      "description": "account_info().trade_expert (EXE-004)."
+    },
+    "limit_orders": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "account_info().limit_orders (count)."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "ts",
+    "login_hash",
+    "salt_version",
+    "server",
+    "company",
+    "currency",
+    "account_class",
+    "trade_mode",
+    "leverage",
+    "balance",
+    "equity",
+    "margin",
+    "margin_free",
+    "margin_level",
+    "margin_so_mode",
+    "margin_so_call",
+    "margin_so_so",
+    "trade_allowed",
+    "trade_expert",
+    "limit_orders"
+  ]
+}

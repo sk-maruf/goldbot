@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/execution_report.schema.json",
+  "title": "ExecutionReport",
+  "description": "One broker response or read-back for an operation (EXE-001, §4 retcode classes, EXE-060 quality metrics). Evidence, never proof of a fill: a fill is CONFIRMED only after read-back.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "op_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "retcode": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/mt5_retcode",
+          "description": "Retcode, or null for a None result or a timeout."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "retcode_class": {
+      "type": "string",
+      "enum": [
+        "SUCCESS",
+        "PARTIAL",
+        "PRICE",
+        "THROTTLE",
+        "UNKNOWN",
+        "MARKET",
+        "AUTH/PERMISSION",
+        "INVALID",
+        "LIMIT",
+        "STATE",
+        "OTHER"
+      ],
+      "description": "EXECUTION_SAFETY_SPEC §4 class, spelled exactly as the spec writes it. OTHER is treated as UNKNOWN."
+    },
+    "timed_out": {
+      "type": "boolean",
+      "description": "No result within the per-call timeout: the state becomes UNKNOWN (EXE-013)."
+    },
+    "resulting_state": {
+      "$ref": "order_intent.schema.json#/$defs/order_state"
+    },
+    "order_ticket": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/mt5_ticket"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "deal_ticket": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/mt5_ticket"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "requested_volume": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "filled_volume": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Filled volume from read-back (EXE-040)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "requested_price": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "fill_price": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "slippage_points": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal",
+          "description": "Entry slippage versus request in points (EXE-060)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "slippage": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/money",
+          "description": "Entry slippage in account currency (EXE-060)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "read_back_sl": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "SL read back from the position (EXE-030). Null if missing or not read."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "latency_ms": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Send to confirm latency (EXE-060)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "op_id",
+    "ts",
+    "retcode",
+    "retcode_class",
+    "timed_out",
+    "resulting_state",
+    "order_ticket",
+    "deal_ticket",
+    "requested_volume",
+    "filled_volume",
+    "requested_price",
+    "fill_price",
+    "slippage_points",
+    "slippage",
+    "read_back_sl",
+    "latency_ms"
+  ]
+}

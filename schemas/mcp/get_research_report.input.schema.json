@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/get_research_report.input.schema.json",
+  "title": "get_research_report input",
+  "description": "MCP read tool get_research_report. Strict validation: unknown fields are rejected with a generic error (MCP-015). Strings are capped at 128 characters unless the spec sets another cap.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "report_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9_.-]+$",
+      "description": "Report id from the report list endpoint (an enum at runtime, MCP §4.0)."
+    }
+  },
+  "required": [
+    "report_id"
+  ]
+}

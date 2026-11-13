@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/guardian_heartbeat.schema.json",
+  "title": "GuardianHeartbeat",
+  "description": "guardian_hb.json, written every 5 s (GRD-011, TIME-030). GRD-011 lists no env field, so none is included. The GRD-011 field 'schema' is represented by schema_version. MQL5 time values are kept as raw integers: TimeTradeServer is server time and TimeLocal is local time, so they are not UTC timestamps.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "instance_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{8,64}$",
+      "description": "Random per process start, not secret (GRD-008). Format not fixed by the spec."
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Strictly increasing (GRD-007)."
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "time_trade_server": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "TimeTradeServer(), MQL5 datetime (seconds since 1970, server time) (TIME-030)."
+        },
+        "time_gmt": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "TimeGMT(), MQL5 datetime seconds."
+        },
+        "time_current": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "TimeCurrent(), MQL5 datetime seconds; last quote time, never 'now' (TIME-001)."
+        },
+        "time_local": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "TimeLocal(), MQL5 datetime seconds, local zone."
+        },
+        "tick_count_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "GetTickCount64(), ms since system start (C2)."
+        }
+      },
+      "required": [
+        "time_trade_server",
+        "time_gmt",
+        "time_current",
+        "time_local",
+        "tick_count_ms"
+      ],
+      "description": "TIME-030 clock fields. Missing or non-numeric fields make the Guardian UNKNOWN (TIME-053)."
+    },
+    "tick_age_ms": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Tick age measured from OnTick with GetTickCount64() (TIME-023). Null before the first tick."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "terminal_connected": {
+      "type": "boolean"
+    },
+    "trade_allowed": {
+      "type": "boolean"
+    },
+    "kill_flag": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "ENGINE_STALE",
+              "TAKEOVER",
+              "EQUITY_INTERVENTION",
+              "STATE_LOST",
+              "DUPLICATE_ENGINE",
+              "UNRESOLVED_EXPOSURE",
+              "DISCONNECTED"
+            ]
+          },
+          "description": "GRD-008/015/016/027 reasons."
+        }
+      },
+      "required": [
+        "active",
+        "reasons"
+      ],
+      "description": "Kill flag the engine must obey (GRD-015/016). When active it means ENTRY_STOP."
+    },
+    "effective_limits": {
+      "$ref": "guardian_config.schema.json#/$defs/guardian_limits"
+    },
+    "positions_seen": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ticket": {
+            "$ref": "common.schema.json#/$defs/mt5_ticket"
+          },
+          "magic": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Magic number."
+          },
+          "volume": {
+            "$ref": "common.schema.json#/$defs/decimal_nonneg"
+          },
+          "sl": {
+            "anyOf": [
+              {
+                "$ref": "common.schema.json#/$defs/decimal_nonneg"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "ticket",
+          "magic",
+          "volume",
+          "sl"
+        ]
+      }
+    },
+    "takeover": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "last_action": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 128,
+              "description": "Last Guardian trading action (SL placement or close)."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "active",
+        "last_action"
+      ],
+      "description": "takeover (bool + last action) (GRD-011, GRD-040)."
+    },
+    "config_status": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "INVALID",
+        "STALE"
+      ]
+    },
+    "unresolved_exposure": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/mt5_ticket"
+      },
+      "description": "Tickets the Guardian could not close (GRD-020 step 8, GRD-028)."
+    },
+    "last_error": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Last error text."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "deinit_reason": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "MQL5 deinit reason code, present only in the final heartbeat written in OnDeinit (GRD-031)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "digest": {
+      "$ref": "common.schema.json#/$defs/sha256_hex",
+      "description": "SHA-256 of the canonical JSON without this field (GRD-008)."
+    }
+  },
+  "required": [
+    "schema_version",
+    "instance_id",
+    "seq",
+    "clock",
+    "tick_age_ms",
+    "terminal_connected",
+    "trade_allowed",
+    "kill_flag",
+    "effective_limits",
+    "positions_seen",
+    "takeover",
+    "config_status",
+    "unresolved_exposure",
+    "last_error",
+    "deinit_reason",
+    "digest"
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/get_account_status.output.schema.json",
+  "title": "get_account_status output",
+  "description": "Account summary (MCP §4.0). Every output carries env, tier, as_of_utc and health (MCP §4.0). No C4 data ever; the login only hashed (MCP-040). Errors use the generic MCP-042 shape, which is outside this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "env": {
+      "$ref": "../common.schema.json#/$defs/env"
+    },
+    "tier": {
+      "anyOf": [
+        {
+          "$ref": "../common.schema.json#/$defs/tier",
+          "description": "PT3 for LIVE cent data, PT2 for DEMO; null for BACKTEST/REPLAY snapshots that have no live tier."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "as_of_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp"
+    },
+    "health": {
+      "$ref": "../common.schema.json#/$defs/health_state",
+      "description": "Aggregate health at as_of_utc, so stale or unhealthy data is never mistaken for live (MCP §4.0)."
+    },
+    "params": {
+      "$ref": "../common.schema.json#/$defs/params_label",
+      "description": "FIXTURE when fixture parameters are in effect (RISK-066)."
+    },
+    "privacy_mode": {
+      "type": "boolean",
+      "description": "Privacy mode (default on): amounts as % of equity or R instead of currency (MCP-040)."
+    },
+    "account_class": {
+      "type": "string",
+      "enum": [
+        "CENT",
+        "STANDARD",
+        "UNKNOWN"
+      ]
+    },
+    "currency": {
+      "$ref": "../common.schema.json#/$defs/currency"
+    },
+    "balance": {
+      "$ref": "../common.schema.json#/$defs/privacy_amount"
+    },
+    "equity": {
+      "$ref": "../common.schema.json#/$defs/privacy_amount"
+    },
+    "margin_used": {
+      "$ref": "../common.schema.json#/$defs/privacy_amount"
+    },
+    "margin_free": {
+      "$ref": "../common.schema.json#/$defs/privacy_amount"
+    },
+    "margin_level": {
+      "$ref": "../common.schema.json#/$defs/decimal_nonneg",
+      "description": "Margin level, %."
+    },
+    "effective_leverage": {
+      "$ref": "../common.schema.json#/$defs/decimal_nonneg",
+      "description": "Effective leverage (EXP-003), x."
+    },
+    "trading_state": {
+      "$ref": "../common.schema.json#/$defs/trading_state"
+    },
+    "operating_mode": {
+      "anyOf": [
+        {
+          "$ref": "../common.schema.json#/$defs/entry_authorization_mode",
+          "description": "Null while P-37 is undecided."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "login_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{12}$",
+      "description": "PRV-011 hashed login."
+    },
+    "salt_version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Salt version label (not the salt)."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "tier",
+    "as_of_utc",
+    "health",
+    "privacy_mode",
+    "account_class",
+    "currency",
+    "balance",
+    "equity",
+    "margin_used",
+    "margin_free",
+    "margin_level",
+    "effective_leverage",
+    "trading_state",
+    "operating_mode",
+    "login_hash",
+    "salt_version"
+  ]
+}

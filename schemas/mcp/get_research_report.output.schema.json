@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/mcp/get_research_report.output.schema.json",
+  "title": "get_research_report output",
+  "description": "Stored report fields plus markdown body, user- or system-authored only; never external text (MCP-041). Every output carries env, tier, as_of_utc and health (MCP §4.0). No C4 data ever; the login only hashed (MCP-040). Errors use the generic MCP-042 shape, which is outside this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010)."
+    },
+    "env": {
+      "$ref": "../common.schema.json#/$defs/env"
+    },
+    "tier": {
+      "anyOf": [
+        {
+          "$ref": "../common.schema.json#/$defs/tier",
+          "description": "Tier of the report's results, if any."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "as_of_utc": {
+      "$ref": "../common.schema.json#/$defs/utc_timestamp"
+    },
+    "health": {
+      "$ref": "../common.schema.json#/$defs/health_state",
+      "description": "Aggregate health at as_of_utc, so stale or unhealthy data is never mistaken for live (MCP §4.0)."
+    },
+    "params": {
+      "$ref": "../common.schema.json#/$defs/params_label",
+      "description": "FIXTURE when fixture parameters are in effect (RISK-066)."
+    },
+    "report_id": {
+      "type": "string",
+      "maxLength": 128,
+      "description": "Report id."
+    },
+    "fields": {
+      "type": "object",
+      "description": "The report's structured fields. Shape not specified."
+    },
+    "markdown_body": {
+      "type": "string",
+      "maxLength": 100000,
+      "description": "Markdown body, control characters stripped, length-capped (MCP-041)."
+    },
+    "content_origin": {
+      "type": "string",
+      "enum": [
+        "user",
+        "system"
+      ],
+      "description": "MCP-041 content_origin. The spec says 'user- or system-authored' but spells only mcp_client as a value."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "tier",
+    "as_of_utc",
+    "health",
+    "report_id",
+    "fields",
+    "markdown_body",
+    "content_origin"
+  ]
+}

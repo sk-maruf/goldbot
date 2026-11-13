@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/risk_decision.schema.json",
+  "title": "RiskDecision",
+  "description": "Deterministic RiskEngine result (RISK-001..003; table risk_decisions). evaluate() is a pure function of its inputs; inputs_hash identifies them. Reason codes are the ones TRADING_RISK_SPEC §3-§5 and §11 (GV/CGV) name. Some checks (EXP-004 margin utilisation, EXP-005 free margin, EXP-006 stop-out distance, P-27 reward-to-risk, trading state not ACTIVE, unknown action type) have no named code in the spec, so a rejection by them cannot yet be expressed: an open spec gap.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "signal_id": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/uuidv7",
+          "description": "Signal evaluated. Null for modifications and reductions that have no signal (RISK-002)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp"
+    },
+    "evaluation": {
+      "type": "string",
+      "enum": [
+        "evaluate",
+        "evaluate_reduction",
+        "evaluate_modification"
+      ],
+      "description": "Which RiskEngine function produced the decision (RISK-002)."
+    },
+    "inputs_hash": {
+      "$ref": "common.schema.json#/$defs/sha256_hex",
+      "description": "Hash of (proposal, account_snapshot, symbol_spec, market_snapshot, limits, limit_state, trading_state, clock_snapshot) (RISK-003)."
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "APPROVE",
+        "REJECT"
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "MIN_VOLUME_EXCEEDS_BUDGET",
+          "BUDGET_CHECK_FAILED",
+          "AGGREGATE_RISK",
+          "OUTSIDE_STRATEGY_ENVELOPE",
+          "CALC_MISMATCH",
+          "CALC_UNAVAILABLE",
+          "OFF_TICK",
+          "SL_TOO_CLOSE",
+          "STALE_TICK",
+          "SPREAD_TOO_WIDE",
+          "BLACKOUT",
+          "EFFECTIVE_LEVERAGE",
+          "MARGIN_LEVEL",
+          "MAX_POSITIONS",
+          "SIGNAL_STALE",
+          "PRE_CLOSE",
+          "OVERNIGHT_HOLD",
+          "NEWS_DATA_INVALID",
+          "MODIFICATION_PAST_CLOSE",
+          "CURRENCY_MISMATCH",
+          "SPEC_INCOMPLETE"
+        ]
+      }
+    },
+    "volume": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Approved volume, rounded down to volume_step (RISK-013). Null on REJECT."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "modelled_loss": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/money",
+          "description": "Modelled loss at SL including the P-26 slippage allowance, rounded up (RISK-011..014, RISK-022). Null when it could not be computed."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "price_quantization": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "original_sl": {
+              "$ref": "common.schema.json#/$defs/decimal_nonneg"
+            },
+            "original_tp": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/decimal_nonneg"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "quantized_sl": {
+              "$ref": "common.schema.json#/$defs/decimal_nonneg"
+            },
+            "quantized_tp": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/decimal_nonneg"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "delta_sl": {
+              "$ref": "common.schema.json#/$defs/decimal"
+            },
+            "delta_tp": {
+              "anyOf": [
+                {
+                  "$ref": "common.schema.json#/$defs/decimal"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "original_sl",
+            "original_tp",
+            "quantized_sl",
+            "quantized_tp",
+            "delta_sl",
+            "delta_tp"
+          ],
+          "description": "RISK-025 step 6: original and quantized prices and the delta. Only for strategies with allow_price_quantization."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "signal_id",
+    "ts",
+    "evaluation",
+    "inputs_hash",
+    "decision",
+    "reason_codes",
+    "volume",
+    "modelled_loss",
+    "price_quantization"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "REJECT"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "volume": {
+            "type": "null"
+          },
+          "reason_codes": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "APPROVE"
+          },
+          "evaluation": {
+            "const": "evaluate"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "volume": {
+            "type": "string"
+          },
+          "modelled_loss": {
+            "$ref": "common.schema.json#/$defs/money"
+          }
+        }
+      }
+    }
+  ]
+}

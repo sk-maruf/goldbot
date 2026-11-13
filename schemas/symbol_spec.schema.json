@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/symbol_spec.schema.json",
+  "title": "SymbolSpec",
+  "description": "Symbol spec snapshot (CENT-004; table symbol_specs). Stored as canonical JSON; its SHA-256 is the spec hash (T10). Values come from live symbol_info() through the conversion boundary (RISK-020); nothing here is a broker fact until M2. MT5 enumeration and flag fields are kept as the raw integers the MetaTrader5 package returns; the spec does not name their values.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp",
+      "description": "When the snapshot was read (C1)."
+    },
+    "symbol": {
+      "type": "string",
+      "maxLength": 64,
+      "description": "Discovered symbol name (CENT-003), e.g. a cent gold symbol; never assumed."
+    },
+    "spec_hash": {
+      "$ref": "common.schema.json#/$defs/sha256_hex",
+      "description": "SHA-256 of the canonical JSON of the CENT-004 fields (T10)."
+    },
+    "verified_by_user": {
+      "type": "boolean",
+      "description": "The user confirmed this spec (CENT-003, CENT-020 typed phrase)."
+    },
+    "digits": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_DIGITS.",
+      "maximum": 15
+    },
+    "point": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_POINT (price)."
+    },
+    "trade_tick_size": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_TRADE_TICK_SIZE (price)."
+    },
+    "trade_tick_value": {
+      "$ref": "common.schema.json#/$defs/money",
+      "description": "SYMBOL_TRADE_TICK_VALUE per 1.00 lot, with its currency. A missing currency means SPEC_INCOMPLETE (CGV-04)."
+    },
+    "trade_tick_value_profit": {
+      "$ref": "common.schema.json#/$defs/money",
+      "description": "SYMBOL_TRADE_TICK_VALUE_PROFIT per 1.00 lot."
+    },
+    "trade_tick_value_loss": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/money",
+          "description": "SYMBOL_TRADE_TICK_VALUE_LOSS per 1.00 lot. Null if unavailable; RISK-014 then falls back to trade_tick_value."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "trade_contract_size": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_TRADE_CONTRACT_SIZE."
+    },
+    "volume_min": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_VOLUME_MIN (lots)."
+    },
+    "volume_max": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_VOLUME_MAX (lots)."
+    },
+    "volume_step": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_VOLUME_STEP (lots)."
+    },
+    "volume_limit": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_VOLUME_LIMIT (lots; 0 is MT5's 'no limit' value, not interpreted here)."
+    },
+    "trade_stops_level": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_TRADE_STOPS_LEVEL in points (CENT-015)."
+    },
+    "trade_freeze_level": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_TRADE_FREEZE_LEVEL in points (CENT-015)."
+    },
+    "trade_mode": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_TRADE_MODE, raw MT5 enum integer."
+    },
+    "trade_exemode": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_TRADE_EXEMODE, raw MT5 enum integer."
+    },
+    "filling_mode": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_FILLING_MODE flags, raw integer (EXE-020 chooses type_filling from it)."
+    },
+    "order_mode": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_ORDER_MODE flags, raw integer."
+    },
+    "swap_mode": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_SWAP_MODE, raw MT5 enum integer (CENT-007)."
+    },
+    "swap_long": {
+      "$ref": "common.schema.json#/$defs/decimal",
+      "description": "SYMBOL_SWAP_LONG. Its unit depends on swap_mode, so no currency is attached (CENT-007)."
+    },
+    "swap_short": {
+      "$ref": "common.schema.json#/$defs/decimal",
+      "description": "SYMBOL_SWAP_SHORT. Unit depends on swap_mode."
+    },
+    "swap_rollover3days": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "SYMBOL_SWAP_ROLLOVER3DAYS, raw MT5 weekday integer.",
+      "maximum": 6
+    },
+    "currency_base": {
+      "$ref": "common.schema.json#/$defs/currency",
+      "description": "SYMBOL_CURRENCY_BASE (for gold this is a metal code, not an account currency)."
+    },
+    "currency_profit": {
+      "$ref": "common.schema.json#/$defs/currency",
+      "description": "SYMBOL_CURRENCY_PROFIT."
+    },
+    "currency_margin": {
+      "$ref": "common.schema.json#/$defs/currency",
+      "description": "SYMBOL_CURRENCY_MARGIN."
+    },
+    "margin_initial": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_MARGIN_INITIAL as reported; margin is always taken from order_calc_margin at decision time (EXP-007)."
+    },
+    "margin_maintenance": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "SYMBOL_MARGIN_MAINTENANCE as reported."
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "ts",
+    "symbol",
+    "spec_hash",
+    "verified_by_user",
+    "digits",
+    "point",
+    "trade_tick_size",
+    "trade_tick_value",
+    "trade_tick_value_profit",
+    "trade_tick_value_loss",
+    "trade_contract_size",
+    "volume_min",
+    "volume_max",
+    "volume_step",
+    "volume_limit",
+    "trade_stops_level",
+    "trade_freeze_level",
+    "trade_mode",
+    "trade_exemode",
+    "filling_mode",
+    "order_mode",
+    "swap_mode",
+    "swap_long",
+    "swap_short",
+    "swap_rollover3days",
+    "currency_base",
+    "currency_profit",
+    "currency_margin",
+    "margin_initial",
+    "margin_maintenance"
+  ]
+}

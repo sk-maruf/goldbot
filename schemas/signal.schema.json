@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goldbot.local/schemas/signal.schema.json",
+  "title": "Signal",
+  "description": "A candidate leaving the intelligence layer (MI-002; table signals). Only a proposal: it still passes the pre-trade gates and the RiskEngine (MI-046). The SL is mandatory (RISK-030).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version (DATA-010). Breaking changes need a migration and an ADR line."
+    },
+    "env": {
+      "$ref": "common.schema.json#/$defs/env"
+    },
+    "params": {
+      "$ref": "common.schema.json#/$defs/params_label",
+      "description": "Present with value FIXTURE when fixture values of unapproved parameters are in effect (RISK-005, RISK-066 item 3, MI-045). Absent otherwise; the spec names no value for the approved case."
+    },
+    "fixture_demo_mode": {
+      "$ref": "common.schema.json#/$defs/entry_authorization_mode",
+      "description": "Fixture demo only: the entry authorization mode the user set for this run in fixture_demo_mode (RISK-066 item 4). Absent outside fixture demo."
+    },
+    "mono_seq": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Engine monotonic sequence number for ordering within a process (DATA-003). Optional because records not written by the engine (research, Guardian ingest) have none."
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "decision_id": {
+      "$ref": "common.schema.json#/$defs/uuidv7"
+    },
+    "strategy": {
+      "$ref": "common.schema.json#/$defs/strategy_name"
+    },
+    "strategy_version": {
+      "$ref": "common.schema.json#/$defs/semver"
+    },
+    "ts": {
+      "$ref": "common.schema.json#/$defs/utc_timestamp",
+      "description": "Signal creation time; its age is checked against P-29."
+    },
+    "side": {
+      "$ref": "common.schema.json#/$defs/side"
+    },
+    "entry": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "Reference entry price from the strategy rules."
+    },
+    "sl": {
+      "$ref": "common.schema.json#/$defs/decimal_nonneg",
+      "description": "Stop-loss price (mandatory)."
+    },
+    "tp": {
+      "anyOf": [
+        {
+          "$ref": "common.schema.json#/$defs/decimal_nonneg",
+          "description": "Take-profit price, optional (EXE-020)."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "gate_results": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "$ref": "pre_trade_gate_result.schema.json#/$defs/gate_check"
+          },
+          "description": "Pre-trade gate results. Null until the signal_validator has run."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "env",
+    "id",
+    "decision_id",
+    "strategy",
+    "strategy_version",
+    "ts",
+    "side",
+    "entry",
+    "sl",
+    "tp",
+    "gate_results"
+  ]
+}
