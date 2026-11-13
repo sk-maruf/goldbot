@@ -79,7 +79,7 @@ below are PROPOSED for user approval in M0.
 | A7 | Monte Carlo 95th-percentile max drawdown ≤ P-04 at planned risk | Bad-luck ordering of the same trades would not hit the drawdown intervention | Survivability, not profit | Reshuffling assumes independent trades; use block bootstrap if autocorrelated | All | Needs ≥ 100 trades to be informative |
 | A8 | Each parameter ±20% keeps ≥ 70% of base expectancy | Not balanced on a knife-edge | Fragile optimum = probable overfit | Arbitrary ±20%; coupled parameters need joint perturbation | Every strategy with at least one numeric constant, including "fixed" rules (C1–C4) | — |
 | A9 | Expectancy > 0 under "spread × 1.5 + stop slippage × 2" (BT §5) | Edge survives realistic cost shocks | Cent accounts lose thin edges to costs [S32] | Stress size is a judgement | All | — |
-| A10 | Min-volume rejection rate ≤ 50% (CENT-031) | Most signals can actually be traded at this capital | Otherwise the live strategy differs from the tested one | Depends on equity path | All on cent | — |
+| A10 | Capital-feasibility rejection rate ≤ 50% (CENT-030/031: minimum lot, leverage, margin, stop-out distance, aggregate risk and spread rejections all count; user decision 2026-11-13) | Most signals can actually be traded at this capital | Otherwise the live strategy differs from the tested one | Depends on equity path | All on cent | — |
 
 - **RES-021 Multiple testing.** Every configuration evaluated on any out-of-sample window counts
   as a trial. DSR uses the registry's count of trials for that strategy family (correlated variants

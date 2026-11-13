@@ -91,7 +91,7 @@
 | A-70 | At the cent minimum lot the stops level, freeze level and spread leave room for trailing and break-even modifications at the MI-172 minimum step; partial exits are infeasible at the minimum volume | **UNKNOWN** | Measure stops and freeze levels and spread in S0 and M2 discovery; MI-174 records `PARTIAL_INFEASIBLE`; the MI-175 backtests use the measured values | S0/M6e |
 | A-71 | TRADING_RISK_SPEC.md names no RiskEngine reason code for rejections by EXP-004, EXP-005, EXP-006, P-27, a trading state other than ACTIVE, or an unknown action type (RISK-002); `schemas/risk_decision.schema.json` has a closed enum and cannot record them (found in the M0b review) | RESOLVED 2026-11-13: the user approved `MARGIN_UTILISATION`, `FREE_MARGIN`, `STOP_OUT_DISTANCE`, `REWARD_RISK_BELOW_MIN`, `STATE_NOT_ACTIVE`, `UNKNOWN_ACTION` (CH-90) | User approves the code names as a spec change (TRADING_RISK_SPEC §11); no code is invented | M3 |
 
-## 5. User decision register (D-01..D-12) — D-08 pending; the rest decided 2026-11-13
+## 5. User decision register (D-01..D-12) — all decided 2026-11-13
 
 Pending decisions are **never** filled in by Claude Code (CLAUDE.md §3.22). Until each is decided,
 tests and fixture-demo runs (RISK-066) use labelled fixture values (TRADING_RISK_SPEC §2), and LIVE
@@ -106,7 +106,7 @@ entries stay blocked (RISK-005, RISK-065). Options and consequences are in the r
 | D-05 | Daily profit-target behaviour (P-35) | none / stop entries / reduce risk | TRADING_RISK_SPEC §2 | Nothing (no behaviour until decided) | DECIDED 2026-11-13: none |
 | D-06 | Consecutive-loss limits (P-07, P-08) and automatic risk reduction (P-36) | Ranges and options in §2; never an increase | TRADING_RISK_SPEC §2, §7 | LIVE | DECIDED 2026-11-13: P-07 3, P-08 5, P-36 none |
 | D-07 | Trading style: scalping, intraday or swing | Swing **conflicts** with the confirmed no-overnight rule (RES-072) and would require changing that decision | STRATEGY_RESEARCH_SPEC RES-072/073; MARKET_INTELLIGENCE_SPEC MI-053 (scalping) | Strategy selection | DECIDED 2026-11-13: research both scalping and intraday; the edge verdict picks |
-| D-08 | Initial strategy selection | From M0 proposals (RES-073), drawn from the MI-050 strategy families | STRATEGY_RESEARCH_SPEC §10 | M6 focus | PENDING (M0c proposes candidates) |
+| D-08 | Initial strategy selection | From M0 proposals (RES-073), drawn from the MI-050 strategy families | STRATEGY_RESEARCH_SPEC §10 | M6 focus | DECIDED 2026-11-13: research candidate A (opening-range breakout and retest) first, then B, then C |
 | D-09 | One strategy or several | Several requires P-31 sizing and, for switching, a prevalidated selector (RES-061) | STRATEGY_RESEARCH_SPEC §9 | M6/M9 | DECIDED 2026-11-13: several strategies, sharing the P-31 budget |
 | D-10 | Rule-based, ML-assisted or hybrid | ML/hybrid = class C3 with purging, embargo and nested walk-forward (RES-023) | STRATEGY_RESEARCH_SPEC §5.1 | M6 scope | DECIDED 2026-11-13: rule-based only (no model in the signal path) |
 | D-11 | May the system research new strategies? AI signal-generation permissions | An external AI service in the signal path conflicts with LLM-001/LLM-006; only a locally run, versioned, validated model (C3) is compatible | SYSTEM_ARCHITECTURE §9; STRATEGY_RESEARCH_SPEC §5.1 | M6/M8 | DECIDED 2026-11-13: the system may research and report new strategies (never deploys without approval); LLM disabled (P-28 = 0); no AI in signals |

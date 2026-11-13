@@ -199,5 +199,8 @@ Values are recorded in `config/risk_limits.yaml` and `docs/STATUS.md` §8; no sp
 | --- | --- | --- | --- | --- | --- | --- |
 | CH-90 | EXP-004, EXP-005 (free margin), EXP-006, P-27, RISK-002 (unknown action) and the ACTIVE-state requirement had no reason code | A rejection by them could not be recorded (A-71, M0b review) | Codes `MARGIN_UTILISATION`, `FREE_MARGIN`, `STOP_OUT_DISTANCE`, `REWARD_RISK_BELOW_MIN`, `UNKNOWN_ACTION`, `STATE_NOT_ACTIVE` | User approved the names 2026-11-13 | `risk_decision` schema enum | M3 tests per code |
 | CH-91 | PRIVACY_POLICY §5 did not list the NTP flow that TIME-010 needs | An unlisted outbound flow | Row added: time.google.com and time.cloudflare.com, user choice 2026-11-13 | Every outbound flow is listed and consented (PRV-018) | `config/app.yaml` servers | `goldbot doctor` clock check |
+| CH-92 | A10 counted only `MIN_VOLUME_EXCEEDS_BUDGET` (CENT-030/031) | A strategy could pass A10 while most signals fail the leverage, margin or spread rules (M0c strategy review) | A10 uses a capital-feasibility rejection rate over all capital and cost rejection codes; the min-volume rate is still reported | User decision 2026-11-13 | Backtest and report code compute both rates | M6 report tests |
 
-**Safety-restriction check:** no loosening. CH-90 names rejections that already existed; CH-91 lists a flow that was required but undocumented.
+The user also decided on 2026-11-13: a leverage or margin breach keeps rejecting the trade (no size-down); Guardian inputs max open positions 1 and emergency-SL loss budget 0.20%; D-08 research order candidate A, then B, then C (`docs/STRATEGY_CANDIDATES.md`).
+
+**Safety-restriction check:** no loosening. CH-92 makes A10 stricter. CH-90 names rejections that already existed; CH-91 lists a flow that was required but undocumented.

@@ -136,11 +136,15 @@ golden vectors of TRADING_RISK_SPEC §11 need no recomputation.
 | D-05 | Daily profit-target behaviour (P-35) | DECIDED 2026-11-13: none |
 | D-06 | Loss streak limits, reduction | DECIDED 2026-11-13: P-07 3, P-08 5, P-36 none |
 | D-07 | Trading style | DECIDED 2026-11-13: research both scalping and intraday; the edge verdict picks |
-| D-08 | Initial strategy selection | PENDING (M0c proposes candidates) |
+| D-08 | Initial strategy selection | DECIDED 2026-11-13: research candidate A (opening-range breakout and retest) first, then B, then C |
 | D-09 | One strategy or several | DECIDED 2026-11-13: several strategies, sharing the P-31 budget |
 | D-10 | Rule-based, ML or hybrid | DECIDED 2026-11-13: rule-based only (no model in the signal path) |
 | D-11 | Research, AI permissions | DECIDED 2026-11-13: the system may research and report new strategies (never deploys without approval); LLM disabled (P-28 = 0); no AI in signals |
 | D-12 | Adaptive selection | DECIDED 2026-11-13: prevalidated selector (C4, built and validated in M6f) |
+
+Further answers 2026-11-13: a leverage or margin breach keeps rejecting the trade (no size-down);
+A10 counts every capital and cost rejection (CH-92); Guardian inputs max open positions 1 and
+emergency-SL loss budget 0.20%; max volume per position is computed in M7b from broker data.
 
 The user first chose Hybrid for D-10 and then, asked about the conflict with D-11, chose
 rule-based only. With P-31 = P-01 = 0.25%, several strategies cannot hold positions at the same

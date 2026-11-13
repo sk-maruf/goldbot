@@ -113,7 +113,11 @@ are recorded from the live accounts in M2 and replace `ILL-*` in CI, with user a
   `min_volume_rejection_rate = (# MIN_VOLUME_EXCEEDS_BUDGET) / (# signals that passed every
   pre-trade gate)`. Reported in backtests (`BACKTESTING_SPEC.md` §7), the forward test, live, the dashboard
   (UI-021) and the MCP tool `get_strategy_performance`.
-- **CENT-031** If the rate exceeds 50% over the evaluation window, the strategy report flags it
+  Also, for A10 (user decision 2026-11-13, CH-92): `capital_feasibility_rejection_rate = (# signals
+  rejected with any of `MIN_VOLUME_EXCEEDS_BUDGET`, `EFFECTIVE_LEVERAGE`, `MARGIN_UTILISATION`, `MARGIN_LEVEL`, `FREE_MARGIN`, `STOP_OUT_DISTANCE`, `AGGREGATE_RISK` or `SPREAD_TOO_WIDE`, at a pre-trade gate or in the
+  RiskEngine) / (# signals not rejected for a reason unrelated to capital or cost)`. Rejections for
+  stale data, blackout, pre-close window or trading state are excluded from both counts.
+- **CENT-031** If the capital-feasibility rejection rate exceeds 50% over the evaluation window, the strategy report flags it
   `CAPITAL-INFEASIBLE`. The research verdict must say that the strategy cannot be traded as
   designed at this capital, rather than quietly trading only the surviving subset.
 - **CENT-032** CGV-06 shows that the rate rises as equity falls. Reports must show the rate
