@@ -1,0 +1,37 @@
+{
+  "profile": "ILL-STD",
+  "label": "ILLUSTRATIVE",
+  "source": "specifications/CENT_ACCOUNT_VALIDATION.md §4 (assumed values, not broker data). Replaced by VER-* profiles from M2 with user approval.",
+  "filler_fields": "Every value not listed in CENT_ACCOUNT_VALIDATION §4 is fixture filler chosen only so the shapes are complete: account login/server/company/balance/leverage/margin_so_*, symbol digits/volume_max/volume_limit/trade_mode/trade_exemode/filling_mode/order_mode/swap_*/margin_*/currency_*, tick prices. trade_contract_size is derived from the CENT-012 prediction (value_per_dollar_at_min_lot = contract_size x volume_min, standard scale). Sessions are the published XAU hours (CENT-005, VERIFIED S2), server time GMT+0 (TIME-031).",
+  "comment_max_len": null,
+  "comment_note": "A-30 BLOCKED until M7: null = comment preserved (default); 0 = dropped; N = truncated to N characters.",
+  "server_offset_minutes": 0,
+  "terminal": {"connected": true, "trade_allowed": true},
+  "account": {
+    "login": 1000002, "trade_mode": 0, "leverage": 200, "limit_orders": 0, "margin_so_mode": 0,
+    "trade_allowed": true, "trade_expert": true, "balance": 100.0,
+    "margin_so_call": 60.0, "margin_so_so": 0.0,
+    "currency": "USD", "server": "FakeBroker-ILL-STD", "company": "FakeBroker (ILLUSTRATIVE)"
+  },
+  "symbol": {
+    "name": "XAUUSD", "digits": 2, "point": 0.01,
+    "trade_tick_size": 0.01, "trade_tick_value": 1.0, "trade_tick_value_profit": 1.0, "trade_tick_value_loss": 1.0,
+    "trade_contract_size": 100.0,
+    "volume_min": 0.01, "volume_max": 200.0, "volume_step": 0.01, "volume_limit": 0.0,
+    "trade_stops_level": 0, "trade_freeze_level": 0,
+    "trade_mode": 4, "trade_exemode": 2, "filling_mode": 2, "order_mode": 127,
+    "swap_mode": 1, "swap_long": 0.0, "swap_short": 0.0, "swap_rollover3days": 3,
+    "currency_base": "XAU", "currency_profit": "USD", "currency_margin": "USD",
+    "margin_initial": 0.0, "margin_maintenance": 0.0
+  },
+  "tick": {"bid": 4070.0, "ask": 4070.3},
+  "sessions": {
+    "mon": [["00:00", "20:58"], ["22:01", "24:00"]],
+    "tue": [["00:00", "20:58"], ["22:01", "24:00"]],
+    "wed": [["00:00", "20:58"], ["22:01", "24:00"]],
+    "thu": [["00:00", "20:58"], ["22:01", "24:00"]],
+    "fri": [["00:00", "20:58"]],
+    "sat": [],
+    "sun": [["22:05", "24:00"]]
+  }
+}

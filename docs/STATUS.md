@@ -15,7 +15,7 @@ dependency order in `prompts/01_MILESTONE_PROMPTS.md`). The M0 review runs once,
 | M0b ADRs, schemas, config examples | DONE | APPROVE (M0 review, §13) | 2026-11-13 |
 | M0c UI spec, candidates, test plan, runbook, DoD, Phase 0, backlog, review | DONE | APPROVE (M0 review, §13) | 2026-11-13 |
 | S0 Feasibility spike (advisory, gates nothing) | DONE (§14) | n/a | 2026-11-13 |
-| M1 Foundation | NOT STARTED | | |
+| M1 Foundation | IN PROGRESS (plan approved 2026-11-13; see §12) | | |
 | M2a Read-only MT5 and discovery · M2b 24 h soak | NOT STARTED | | |
 | M3 Decimal and RiskEngine | NOT STARTED | | |
 | M4 Dashboard (read-only) | NOT STARTED | | |
@@ -231,15 +231,44 @@ machine reused for closes; GRD-010 field named `schema` vs DATA-010 `schema_vers
 reconciliation flag absent from the heartbeat; ADR-007 manual blackout schedule undefined; MCP-015
 128-char limit vs a 1,000-char journal note; P-32 fixture "= P-01".
 
-## 12. Next
+## 12. Next (RESUME POINT, 2026-11-13)
 
-S0 feasibility spike (`prompts/00b_FEASIBILITY_SPIKE_PROMPT.md`, advisory, gates nothing). Data:
-the user's Exness **demo** account in the installed MT5 terminal (`C:\Program Files\MetaTrader 5`),
-read-only `copy_rates_range`; MetaTrader5 5.0.6231 imports on Python 3.13 (not 3.14). Then M1.
+**M1 is IN PROGRESS on branch `m1-foundation`** (plan approved by the user 2026-11-13; M0 tagged
+`m0-approved`; S0 done, §14). The session was checkpointed mid-TDD: tests are written and RED,
+most implementations are missing. Already in place: `pyproject.toml` (Python 3.13, uv), `uv.lock`,
+`.gitattributes`, `.gitignore`, `.pre-commit-config.yaml` (ruff + gitleaks),
+`.github/workflows/ci.yml` (Windows + Linux), repo layout `src/goldbot/{core,intelligence,engine,
+adapters,api,research,llm,mcp}`, `tests/{unit,property,golden,integration,chaos,e2e,security}`.
 
-Known follow-ups: `.gitattributes` (`* text=auto eol=lf`) in M1 so `gen_test_plan.py --check`
-survives CRLF checkouts; UI_SPEC §11 OPEN items feed M4/M8; where dashboard-tightened values are
-stored vs the RISK-090 hash (M3/M4); Guardian retry settings direction in GRD-003 (M7b).
+Resume by re-launching four TDD builders on disjoint ownership (the prompts are in the session
+transcript; each must first read its existing RED tests and keep them unless they contradict the
+spec):
+
+1. Money: `core/convert.py`, `core/money.py`, `core/rounding.py` — tests exist:
+   `tests/unit/test_{convert,money,rounding}.py`, `tests/property/test_money_properties.py`,
+   `tests/golden/test_gv_money.py`, `tests/security/test_no_decimal_float.py`. RISK-020..025, GV-06/25/26.
+2. Time/obs/secrets/audit: `core/clock.py` (written), `core/ntp.py` (stdlib SNTP), `core/logs.py`
+   (structlog + SEC-004 redaction), `core/secrets.py` (keyring), `core/audit.py` (SEC-022 chain).
+   Tests exist: `tests/unit/test_clock.py`, `tests/security/test_naive_datetime_ban.py`; missing:
+   ntp, logs, redaction property, secrets, audit, audit tamper.
+3. Config/env/Phase-0/doctor/models: `config.py`, `envguard.py`, `phase0.py`, `cli.py` (`goldbot
+   doctor`), `models/` (AuditEvent, HealthStatus + DATA-011 sync test), `config/schema/app.schema.json`,
+   `config/schema/session_exceptions.schema.json`. Tests exist: `tests/unit/test_{config,envguard,phase0}.py`.
+4. Broker: `adapters/broker_port.py` (written), `adapters/fake_broker.py`, fixtures
+   `tests/fixtures/broker/ILL-{CENT,STD}.json` (written). Tests exist: `tests/unit/test_broker_port.py`;
+   missing: `tests/integration/test_fake_broker.py`.
+
+Interfaces fixed for all builders: `Clock` (utc_now, monotonic_ns), `FakeClock`, `ntp.query_offset`,
+`ntp.check_offsets`, `NtpResult(server, offset_ms, rtt_ms)`, `secrets.get_secret/set_secret/
+delete_secret`, `AuditLog(path, env, clock).append(event_type, actor, payload)/.verify_chain()`.
+
+Then: full suite + coverage (≥ 95 % branch on core/money.py, core/convert.py), ruff, pyright,
+`goldbot doctor --offline`; independent code review (ecc:code-reviewer) and security review
+(ecc:security-reviewer); push to the user's private repo `https://github.com/sk-maruf/goldbot.git`
+(add as `origin`; the user signs in on first push) so CI runs on Windows + Linux; then mark M1 DONE.
+
+Follow-ups: UI_SPEC §11 OPEN items feed M4/M8; dashboard-tightened value storage vs RISK-090 hash
+(M3/M4); GRD-003 retry settings direction (M7b); S0 finding on signal frequency for M6.
 
 ## 13. M0 review record (2026-11-13)
 

@@ -1,0 +1,27 @@
+name: ci
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # gitleaks scans the whole history
+      - uses: astral-sh/setup-uv@v3
+      - run: uv python install 3.13
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run pyright
+      - run: uv run pytest -q -m "not mt5" --cov --cov-branch --cov-report=term-missing
+      - run: uv run python tools/gen_test_plan.py --check
+      - name: gitleaks
+        if: runner.os == 'Linux'
+        run: uv run pre-commit run gitleaks --all-files
