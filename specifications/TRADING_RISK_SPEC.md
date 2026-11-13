@@ -55,8 +55,8 @@ requires editing `config/risk_limits.yaml`, restarting, and a logged confirmatio
 | P-10 | `max_margin_utilisation` | PROPOSED | 10 | 10 | projected used margin ÷ equity, % | tighten | EXP-004. |
 | P-11 | `min_projected_margin_level` | PROPOSED | 1000 | 1000 | equity ÷ projected used margin × 100, % | tighten | EXP-005. Keeps far from broker stop-out. |
 | P-12 | `account_leverage_cap` | PROPOSED | 200 | 200 | `account_info().leverage` (1:N) | tighten | An **additional** constraint only (EXP-007). |
-| P-13 | `max_spread` | PROPOSED (A: BROKER_VERIFICATION_REQUIRED) | min(A, B, C): A = absolute cap from live spread data; B = 2.0 × rolling 20-day median spread for the same session hour; C = 10% of SL distance. A strategy may set stricter values (RISK-017) | B and C only | price | tighten | Relative to observed conditions. |
-| P-14 | `max_entry_deviation` | BROKER_VERIFICATION_REQUIRED | Set in M7 from demo slippage data | — | points (order `deviation`) | tighten | Never guessed. |
+| P-13 | `max_spread` | PROPOSED (A: BROKER_VERIFICATION_REQUIRED) | min(A, B, C): A = absolute cap from live spread data; B = 2.0 × rolling 20-day median spread for the same session hour; C = 10% of SL distance. A strategy may set stricter values (RISK-017) | B and C only | price | tighten | Relative to observed conditions. A component without an approved or measured value (A until measured, BROKER_VERIFICATION_REQUIRED) is left out of the min. If B or C cannot be computed, the spread check fails closed: REJECT `CALC_UNAVAILABLE`. |
+| P-14 | `max_entry_deviation` | BROKER_VERIFICATION_REQUIRED | Set in M7 from demo slippage data | — | points (order `deviation`) | tighten | Never guessed. While P-14 is null (unset), no order may be sent: hard refusal, fail closed (EXE-020, EMG-020). Its first value is set with the user before the first demo orders in M7a (user decision 2026-11-13). |
 | P-15 | `tick_staleness_limit` | PROPOSED | 10 | 10 | seconds since last *locally received* tick change, during an open session | tighten | TIME-020. |
 | P-16 | `clock_offset_limits` | PROPOSED | warn 500 / entry-stop 1000 | same | ms, local UTC vs NTP | tighten | TIME-010. |
 | P-17 | `server_offset_tolerance` | PROPOSED | 5 | 5 | seconds between consecutive server-offset estimates | tighten | TIME-030. |
@@ -79,7 +79,7 @@ requires editing `config/risk_limits.yaml`, restarting, and a logged confirmatio
 | P-34 | `auto_recovery` | PROPOSED | Cooldown per trigger class in §7 (default 5 min); health checks must pass continuously for the cooldown; ≤ 3 automatic resumptions per trigger per UTC day, then MANUAL | same | min / count | tighten | RISK-052. |
 | P-35 | `daily_profit_target_behaviour` | USER_DECISION_REQUIRED | Options: none / stop entries after target / reduce risk after target. **No behaviour exists until decided** | none | % of equity | — | Decision D-05. |
 | P-36 | `consecutive_loss_risk_reduction` | USER_DECISION_REQUIRED | Options: none / multiply P-01 by a factor < 1 after N losses until a win. **Never an increase** | none | factor | tighten | Decision D-06. |
-| P-37 | `entry_authorization_mode` | USER_DECISION_REQUIRED | `MANUAL_APPROVAL` / `AUTO_ALL` / `AUTO_APPROVED_STRATEGIES` (§9) | MANUAL_APPROVAL | enum | — | Decision D-01. No default for LIVE or non-fixture DEMO (RISK-065); fixture demo sets the mode per run (RISK-066). |
+| P-37 | `entry_authorization_mode` | USER_DECISION_REQUIRED | `MANUAL_APPROVAL` / `AUTO_ALL` / `AUTO_APPROVED_STRATEGIES` (§9) | MANUAL_APPROVAL | enum | — | Decision D-01, approved 2026-11-13: `AUTO_ALL`. No default for LIVE or non-fixture DEMO (RISK-065); until RISK-061 is met for a strategy, its effective mode is `MANUAL_APPROVAL` (RISK-065); fixture demo sets the mode per run (RISK-066). |
 
 - **RISK-005 Pending-parameter gate.** The engine refuses to start in `LIVE`, and in `DEMO` outside
   fixture demo (RISK-066), while any `USER_DECISION_REQUIRED` parameter lacks
@@ -267,7 +267,7 @@ approved**.
   [VERIFIED S2: 1:200 cap on new gold positions] and around breaks [REPORTED S5], margin is
   always taken from `order_calc_margin` at decision time, never derived from the leverage number.
 - **EXP-008 Concentration.** v1 trades one symbol, so symbol exposure equals account exposure.
-  The number of positions is bounded by P-05 and P-31, both pending user decision. The checks are
+  The number of positions is bounded by P-05 and P-31, both approved 2026-11-13 (P-05 per strategy within P-31, D-04). The checks are
   written per symbol and per account. Positions on one symbol are treated as fully correlated in
   P-31.
 - **EXP-009 Ownership.** Positions/orders whose magic number is not the engine's (`MAGIC_ENGINE`)
@@ -349,10 +349,12 @@ pass continuously (RISK-052); `ACK` = needs a one-step user acknowledgement (TOT
 - **RISK-042 Reporting.** Every intervention reports the threshold, the equity at trigger, the
   equity when protective actions were confirmed, and the overshoot.
 
-## 9. Entry authorization (operating mode) — USER DECISION PENDING (D-01, P-37)
+## 9. Entry authorization (operating mode) — DECIDED 2026-11-13: `AUTO_ALL` (D-01, P-37)
 
-The user has **not** chosen how new entries are authorised. The system supports three modes, and
-no mode is selected on the user's behalf.
+The user decided D-01 on 2026-11-13: P-37 = `AUTO_ALL` (approval record in
+`config/risk_limits.yaml`, RISK-092). The system supports three modes. P-37 is the *configured*
+mode; until RISK-061 is met for a strategy, that strategy's *effective* mode is `MANUAL_APPROVAL`
+(RISK-065, user decision 2026-11-13).
 
 | Mode | Behaviour | Technical consequences | Operational consequences |
 |---|---|---|---|
@@ -378,7 +380,14 @@ no mode is selected on the user's behalf.
   automatic closing of open positions. **Position closing is always automatic**, according to the
   strategy's exit rules, the risk rules and the session-close deadline (EXE-080).
 - **RISK-065 Fail closed while undecided.** In `LIVE`, and in `DEMO` outside fixture demo, the
-  engine generates no entries until P-37 is approved (RISK-005). In fixture demo the mode comes from
+  engine generates no entries while P-37 lacks an approval record (RISK-005). P-37 is approved
+  (`AUTO_ALL`, 2026-11-13), so entries proceed under the *effective* mode: until RISK-061 is met for
+  a strategy (promotion gate RISK-063 passed, trading state ACTIVE, typed phrase + TOTP, audit
+  entry; on `env=LIVE` also the M10 pilot report and GO), that strategy's entries run under
+  `MANUAL_APPROVAL`: each is proposed on the dashboard and needs the user's approval per entry
+  (API-031, P-23). Non-fixture DEMO forward-test trades taken under this effective
+  `MANUAL_APPROVAL` count toward RISK-063. The entry-authorization chip (UI-032) shows both the
+  configured mode (P-37) and the effective mode. In fixture demo the mode comes from
   `fixture_demo_mode` (RISK-066). BACKTEST and REPLAY must state which mode they simulate.
 - **RISK-067 Schedule narrowing (optional, part of D-01).** The user may also decide that automatic
   entry is narrowed by time or conditions: for example automatic only in chosen sessions, or human
@@ -458,8 +467,13 @@ values, the vectors are recomputed and the change is logged.
 - **RISK-090** `config/risk_limits.yaml` is validated against its schema at startup, hashed, and
   the hash is written to the audit log. The UI may only *tighten* (§2). Loosening requires: file
   edit → restart → typed confirmation. A diff is shown and logged.
-- **RISK-091** No component other than the user's file edit can change `P-xx`. Nothing from the
-  LLM, MCP, API command, Guardian or strategy can (enforced by tests that try each path).
+- **RISK-091** Only the user can change `P-xx`: by file edit (RISK-090), or from the dashboard in
+  the stricter direction only. A dashboard change (`POST /v1/limits/tighten`) is accepted only in
+  the §2 "UI may" direction, only after the engine verifies in code that the new value is stricter
+  than the current value, only with re-authentication (API-013), and it writes an audit entry.
+  Loosening still needs file edit → restart → typed confirmation (RISK-090). Nothing from the LLM,
+  MCP, Guardian or strategy can change any `P-xx`, and no other API route can (enforced by tests
+  that try each path).
 - **RISK-092 Approval record.** Each USER_DECISION_REQUIRED parameter in `risk_limits.yaml` carries
   `approved_by_user`, `approved_on` and a free-text `reason`. The values and the approval are copied
   into `docs/STATUS.md`. An approval is never inferred from a fixture value or a recommendation.

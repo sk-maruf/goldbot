@@ -106,7 +106,8 @@ in the dashboard within 5 minutes, otherwise it expires.
   an ADR line, a threat-model update and user approval. An action that could alter trading,
   risk, safety, Guardian, credential or audit state can never be added.
 
-- **MCP-015 Validation.** Strict schema validation. Strings are capped at 128 characters and must be
+- **MCP-015 Validation.** Strict schema validation. Strings are capped at 128 characters (one exception: the `note` of
+  `annotate_trade_journal` is capped at 1,000 characters, §4.1) and must be
   enum-checked where possible. Dates are parsed as UTC with bounded ranges. Unknown tools and extra
   fields are rejected with a generic error.
 

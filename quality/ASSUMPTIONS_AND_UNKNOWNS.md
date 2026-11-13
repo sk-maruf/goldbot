@@ -72,7 +72,7 @@
 | A-44 | Commission placeholder (0.5 × median spread per lot round trip) | ASSUMPTION | Replaced by A-08 | M7/M10 |
 | A-45 | News blackout −30/+15 min (P-18) | ASSUMPTION (conservative) | Review after M9 with blackout-window performance | M9 |
 | A-46 | `PROPOSED` engineering parameters (P-06, P-09..P-27, P-29, P-30, P-33, P-34) | APPROVED by the user 2026-11-13 as proposed (P-14 and P-13 component A stay BROKER_VERIFICATION_REQUIRED) | M0 question 2 | M0 |
-| A-47 | Research thresholds A1–A10, applicability rules RES-023..026 and promotion gate RISK-063, and the market-intelligence defaults MI-042/MI-043 (minimum confluence, correlation groups) | APPROVED by the user 2026-11-13 as proposed | M0 question 3 | M0 |
+| A-47 | Research thresholds A1–A10, applicability rules RES-023..026, promotion gate RISK-063, the RES-040 strategy-state transition defaults, and the market-intelligence defaults MI-042/MI-043 (minimum confluence, correlation groups) | APPROVED by the user 2026-11-13 as proposed | M0 question 3 | M0 |
 
 ## 4. External, legal, privacy, tooling
 

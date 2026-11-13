@@ -294,7 +294,7 @@ beyond the prior close counts); `strict` is a parameter.
   and version, and its own PASS. "Validated strategy performance" in the brief means performance
   recorded in the experiment registry for that strategy and regime (RES-030/031), frozen into the
   selector version. A strategy's **recent live or demo P/L is never a selection input** (RES-060).
-  The selector exists only if the user chooses it (D-12); it is built in M6f and trades only after it
+  The user chose the selector (D-12, 2026-11-13); it is built in M6f and trades only after it
   PASSes. Until then, each PASS strategy runs only within its own envelope.
 - **MI-053 Early reversal scalping strategy (XAUUSD M1/M5).**
   1. *Timeframes:* signal on M1 or M5 (declared per version); M15 and H1 closed bars (MI-034) as
@@ -351,7 +351,7 @@ beyond the prior close counts); `strict` is a parameter.
 - **MI-071 Weights are parameters, and every weight set is a trial.** Decision-engine weights, group
   caps and thresholds are numeric constants of the strategy version. Every evaluated set counts as a
   trial (RES-021). Evaluating more than one set makes the strategy C2; fitting the weights with a
-  model makes it C3 and needs decision D-10 (RES-023).
+  model makes it C3, which D-10 (2026-11-13: rule-based only) excludes (RES-023).
 - **MI-072 Extra report metrics (reported, not gates).** In addition to the BT §7 contents, reports
   for these strategies show the recovery factor (net profit ÷ maximum drawdown), trade frequency
   (trades per week), risk-adjusted return (Sharpe and Sortino of daily returns, and mean R ÷ σ_R),
@@ -389,8 +389,8 @@ beyond the prior close counts); `strict` is a parameter.
 - **MI-091 Incremental build order.** M6a: contracts, bar and timeframe utilities, the
   future-truncation harness (MI-014), Candle Behavior, Candlestick, Liquidity, SMC. M6b: Trend,
   Regime, Multi-Timeframe Confluence, Live Market Perception, Early Reversal, the decision engine and
-  DecisionRecord persistence. M6e: the strategy families the user selected (or the M0 candidates
-  while D-08 is pending) and their research. M6f: the selector, only if D-12 chooses it. V2.2 inserts two parts before the research part:
+  DecisionRecord persistence. M6e: the strategy families the user selected (D-08, 2026-11-13:
+  candidate A first, then B, then C) and their research. M6f: the selector (D-12, chosen 2026-11-13). V2.2 inserts two parts before the research part:
   M6c builds modules 11 and 12 and the module 4 and 8 extensions (MI-110..140); M6d builds the
   setup fields, the lifecycle record, trailing and exit evaluation as pure functions, the
   timeframe roles and the market-condition gates (MI-150..192). One module
@@ -420,7 +420,7 @@ beyond the prior close counts); `strict` is a parameter.
 | §5 M1/M5 scalping | MI-053 | No pending orders while P-06 = 0; SL tighten-only; style is D-07; feasibility via S0/A10 |
 | §6 live perception; "actual MT5 data"; no order-flow claims | MI-020 (module 7), MI-021 | Tick volume is a labelled proxy (A-34); news only from the Guardian calendar export (ADR-007, RISK-018) |
 | §7 decision engine; BUY/SELL/WAIT/NO TRADE; no double counting; timestamps, quality, confidence, invalidation, reasons | MI-040..047 | Correlation groups + derived-record rule |
-| §8 adaptive strategy selection | MI-050..052 | Only through a C4 selector (RES-061), pending D-12; never on recent P/L (RES-060). CLAUDE.md §5 "not in v1: regime switching" is narrowed to "outside that selector" |
+| §8 adaptive strategy selection | MI-050..052 | Only through a C4 selector (RES-061), chosen in D-12 (2026-11-13); never on recent P/L (RES-060). CLAUDE.md §5 "not in v1: regime switching" is narrowed to "outside that selector" |
 | §9 risk profiles, limits, no martingale, min lot → reject | MI-060..062 | No value chosen; profiles are user-approved P-xx sets |
 | §10 research and validation | MI-070..072 | Existing pipeline; extra metrics reported, not gates; win rate never optimised (stricter) |
 | §11 explainability and dashboard | MI-080..082 | Built in M9a on the local dashboard (ADR-013) |

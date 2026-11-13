@@ -93,7 +93,7 @@
 | Broker (MT5 terminal) | On (inherent) | — | Whatever MT5 sends; GoldBot adds only orders |
 | LLM provider | **Off** | Opt-in in Settings with provider name, data preview and spend cap (P-28); consent recorded with date | Sanitised statistics only (PRV-020) |
 | MCP clients | **Off** | Opt-in per client; client id, allowed tools and admin actions recorded (MCP-030); each admin action approved per invocation | Redacted read tool outputs; admin action results (report files, job status) |
-| Time servers (NTP, TIME-010) | On (user choice 2026-11-13: time.google.com, time.cloudflare.com) | Servers listed in `config/app.yaml`; approved by the user 2026-11-13 | Standard NTP time requests only; no account, trading or personal data |
+| Time servers (NTP, TIME-010) | On (user choice 2026-11-13: time.google.com, time.cloudflare.com) | Servers listed in `config/app.yaml`; approved by the user 2026-11-13 in chat, recorded in `docs/STATUS.md` §9; M1 writes this approval into the consent log at first start (PRV-004) | Standard NTP time requests only; no account, trading or personal data |
 | Telemetry | **Off** | Separate opt-in | None defined in v1 |
 | Off-box backups | Off | User chooses destination | Encrypted archive only |
 

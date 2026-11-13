@@ -10,7 +10,7 @@
 
 - [ ] **GOV-001** The session started by reading `docs/STATUS.md`; every dependency is `DONE` with an `APPROVE` review (a part in `WAITING_ON_TIME` is not `DONE`).
 - [ ] Plan mode: files, tests first (by requirement ID), assumptions and BLOCKED items listed, and the plan approved by the user before code.
-- [ ] **Tests first (TDD):** the required tests of the block were written and seen failing before the implementation. Test names follow `docs/TEST_PLAN.md`.
+- [ ] **Tests first (TDD):** the required tests of the block were written and seen failing before the implementation. Test names follow `docs/TEST_PLAN.md`; rows it marks `REVIEW (no automated test)` or `HUMAN step` get no pytest and are verified by the 02 review or by the human step with its evidence.
 - [ ] Every **Required test** of the block passes, and no **Failure condition** of the block occurred.
 - [ ] Tests, lint and types green: `uv run pytest -q -m "not mt5"` (plus `uv run pytest -q -m mt5` where the part needs the Windows host), `uv run ruff check . && uv run pyright`, and `pnpm --dir web test && pnpm --dir web e2e` when `web/` changed.
 - [ ] The coverage targets of `docs/TEST_PLAN.md` §1 that apply to the code touched are met.

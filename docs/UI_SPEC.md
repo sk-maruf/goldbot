@@ -488,12 +488,13 @@ At `bp.tablet` and below only C-04 is shown; the popover holds the rest.
 | Fixture demo | `FIXTURE DEMO — <mode>` | `bar.warning` |
 | Demoted (RISK-062, `mode_change.cause = DEMOTION`) | `<mode> · DEMOTED — APPROVAL REQUIRED (<trigger>)` | `status.warning` |
 | Automation paused after recovery or unclean restart (RISK-050, EXE-071) | `<mode> · AUTOMATION PAUSED — approval required until you re-confirm` | `status.warning` |
-| Decided automatic mode not yet enabled (RISK-061 gate not met) | `AUTO — ALL · NOT ENABLED — promotion gate not met` (**OPEN-11**: whether entries are blocked or need approval meanwhile) | `status.warning` |
+| Decided automatic mode not yet enabled (RISK-061 gate not met) | `CONFIGURED: AUTO — ALL · EFFECTIVE: MANUAL APPROVAL — promotion gate not met` (RISK-065) | `status.warning` |
 | A narrowing rule applies now (RISK-067) | suffix `· narrowed: <rule name>` | — |
 | Unknown | `Entry authorization: Unknown — not verified` | unknown |
 
 User decision D-01 (2026-11-13) is `AUTO_ALL`; the other rows remain for fixture demo, demotion and
-any later change by the user.
+any later change by the user. The chip shows the configured mode (P-37) and the effective mode
+(RISK-065); whenever they differ, it names both, as in the "not yet enabled" row.
 
 **C-07 TradingStateChip** — Source: `GET /v1/risk`, WS `risk` (`trading_state_event`:
 `to_state`, `trigger`, `recovery_class`, `cooldown_ms`). Copy: `ACTIVE`; `ENTRY_STOP · T2 · ACK`;
@@ -844,10 +845,8 @@ TRADING_RISK_SPEC §9 (behaviour, technical, operational) in full text. Source: 
 
 ### 7.4 Tighten-only limit editing (RISK-090/091)
 
-**OPEN-10:** RISK-091 says no API command can change a `P-xx`, while API_SPEC §4 has
-`POST /v1/limits/tighten`. Until resolved, M7 builds the dialog behind a disabled control with the
-text `Limit changes: edit config/risk_limits.yaml and restart (RISK-090).` If resolved in favour of
-the route, the flow is:
+RISK-091 (amended 2026-11-13, OPEN-10 resolved) allows stricter-only `P-xx` changes from the
+dashboard through `POST /v1/limits/tighten`, with re-auth and an audit entry. The flow is:
 
 - Only rows with direction `tighten` or `widen only` show `Tighten…`. The input accepts only values
   stricter than the current one (lower for `tighten`, wider window for `widen only`); a looser value
@@ -1052,7 +1051,7 @@ states.
 | UIT-36 | Missed CRITICAL alerts are shown first on open, before any screen content, with timestamps | Playwright |
 | UIT-37 | Approval card: hold < 800 ms does not approve; ≥ 800 ms does; keyboard path uses a confirm dialog; expired card cannot be approved | Playwright (M9a) |
 | UIT-38 | Approval notification text equals `GoldBot: trade proposal waiting, expires in <P-23> s` and contains no amount, account or price; one notification per proposal | Playwright (M9a) |
-| UIT-39 | Tighten dialog rejects a looser value client-side and the server rejects it too | Playwright (M7, after OPEN-10) |
+| UIT-39 | Tighten dialog rejects a looser value client-side and the server rejects it too | Playwright (M7) |
 | UIT-40 | No UI element offers loosening a limit, changing leverage or editing config | Playwright |
 | UIT-41 | Visual snapshots at 1440 px and 390 px, dark and light, for Overview, Approvals, Risk and each gate state | Playwright snapshots |
 | UIT-42 | Phone width: emergency strip visible with full labels on every screen; no horizontal scroll | Playwright |
@@ -1078,8 +1077,8 @@ Each needs a spec or API change approved by the user; none is invented here.
 | OPEN-07 | `API_SPEC.md` §4; EXE-080, P-19, P-33 | No route for the session calendar, next close, P-19 window and P-33 deadline | M4 |
 | OPEN-08 | `API_SPEC.md` §4 `/v1/positions`; UI-012 | Unstated whether the route returns broker-confirmed and ledger views separately | M4 |
 | OPEN-09 | `MARKET_INTELLIGENCE_SPEC.md` MI-081, MI-195; `API_SPEC.md` §4 | No routes for decision records, rejected signals, setups, lifecycle or management events | M9a |
-| OPEN-10 | `TRADING_RISK_SPEC.md` RISK-091 vs `API_SPEC.md` §4 `POST /v1/limits/tighten` | RISK-091 forbids any API command changing `P-xx`; the route exists (already raised in STATUS §11) | M7 |
-| OPEN-11 | `TRADING_RISK_SPEC.md` RISK-061, RISK-065; D-01 | With P-37 = `AUTO_ALL` decided but RISK-061 not yet met, it is unstated whether entries are blocked or need manual approval; the chip copy depends on it | M7 |
+| OPEN-10 | `TRADING_RISK_SPEC.md` RISK-091 vs `API_SPEC.md` §4 `POST /v1/limits/tighten` | **RESOLVED 2026-11-13:** RISK-091 now allows dashboard changes in the stricter direction only (verified in code, re-auth, audited); the API_SPEC §4 route text agrees (§7.4) | M7 |
+| OPEN-11 | `TRADING_RISK_SPEC.md` RISK-061, RISK-065; D-01 | **RESOLVED 2026-11-13:** RISK-065: until RISK-061 is met, the strategy's entries run under `MANUAL_APPROVAL`; the chip shows configured and effective mode (C-06) | M7 |
 | OPEN-12 | `PRIVACY_POLICY.md` (no requirement); MCP-040 | No dashboard privacy mode is specified; §7.5 is a proposal that needs a requirement ID and the user's confirmation | M8 |
 | OPEN-13 | `MCP_SECURITY_SPEC.md` §4; `API_SPEC.md` §4 | No route lists pending MCP admin requests or rejects one | M8 |
 | OPEN-14 | `schemas/account_snapshot.schema.json`; CENT §1 | No field for the account currency's decimal places; whether MT5 provides it on this account is checked in M2 | M4 |

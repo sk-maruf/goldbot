@@ -78,9 +78,13 @@ CONFIRMED / PARTIALLY_FILLED ─SL missing or wrong─► CONFIRMED_UNPROTECTED 
 
 - **EXE-020** Fields: `action`, `symbol`, `volume` (quantized, RISK-022), `type`, `price`
   (current executable side), `sl` (mandatory), `tp` (optional), `deviation` (P-14), `magic`
-  (`MAGIC_ENGINE`), `comment` (`GB:` + 10-char base32 prefix of `op_id`), `type_time` GTC,
+  (`MAGIC_ENGINE`), `comment` (`GB:` + 10-char base32 tag of the last 50 bits of the `op_id`, which
+  in a UUIDv7 are random, never its timestamp prefix, so two ops created in the same millisecond do
+  not share a tag; a tag still held by an unreconciled op is never reused: the engine generates a
+  new `op_id` before submission), `type_time` GTC,
   `type_filling` chosen from the symbol's `filling_mode` flags [VERIFIED S13]. Retcode 10030
-  (invalid fill) is a configuration defect: ENTRY_STOP and alert.
+  (invalid fill) is a configuration defect: ENTRY_STOP and alert. While P-14 is null (unset), no
+  order is sent: hard refusal, fail closed (TRADING_RISK_SPEC P-14).
 - **EXE-021** Comment-field length and preservation by the broker are [BLOCKED: verify in M7].
   If the comment is not preserved, the identification fallback is
   `(magic, symbol, side, volume, open time within ±5 s of send)`, and resends of that intent are
@@ -167,7 +171,8 @@ followed by a mandatory `RECONCILED` step that re-reads broker state before the 
   audit record. An automatic trigger that needs several steps (T2–T4) records them as separate
   operations in that order.
 - **EMG-020 Retry schedule.** Per P-25: an attempt is a market close (or removal) with
-  `deviation = 2 × P-14`, followed by broker read-back. If not confirmed within the per-attempt
+  `deviation = 2 × P-14` (a null P-14 refuses the attempt, fail closed, as in EXE-020), followed by
+  broker read-back. If not confirmed within the per-attempt
   timeout (5 s), wait the next back-off interval (1, 2, 4, 8 s) and re-read the position before the
   next attempt. Maximum 5 attempts. No attempt starts if the remaining global deadline is shorter
   than the per-attempt timeout. Worst case 40 s ≤ 60 s deadline. At the deadline: `FAILED_DEADLINE`.
@@ -186,7 +191,11 @@ followed by a mandatory `RECONCILED` step that re-reads broker state before the 
   engine-owned positions → resolve every operation left in `SUBMITTED`…`RECONCILING` (EXE-014)
   → trading state starts at **ENTRY_STOP**. It moves to ACTIVE automatically only if the previous
   shutdown was clean **and** every active trigger is `AUTO`-class with its checks passing
-  (RISK-052). Otherwise manual recovery is required.
+  (RISK-052). Otherwise manual recovery is required. **Phase-0 guard:** `env=LIVE` starts only if
+  the last non-empty line of `docs/PHASE0_CLEARANCE.md` is exactly `STATUS: CLEARED` (line ending
+  and trailing spaces ignored); the same text anywhere else in the file does not count. The
+  clearance date is on its own `Date cleared` line above that last line. Negative test: a file whose
+  body contains `STATUS: CLEARED` but whose last line is `STATUS: NOT CLEARED` refuses LIVE.
 - **EXE-071** After an unclean restart, automatic entry permission is paused, whatever the
   configured mode (TRADING_RISK_SPEC §9). Only the user can re-enable it.
 - **EXE-072 Broker maintenance and weekends.** During closed sessions, entries are not generated.

@@ -8,6 +8,11 @@
 >
 > This is a plan. It holds no test results and moves no requirement to `VERIFIED`
 > (GOV-002).
+>
+> Process/review-only rows (every part of `Verification` is a review, STATUS audit,
+> evidence table, inspection, manual, document, CI or `[HUMAN]` marker; §2) get the test
+> `REVIEW (no automated test)` or `HUMAN step` instead of a pytest path, and are verified by the
+> 02 review or by the human step with its evidence (`docs/DEFINITION_OF_DONE.md`).
 
 ## 1. Coverage targets
 
@@ -39,6 +44,12 @@
   function name starts with the `test_<id>` named in the traceability acceptance
   criterion. A requirement checked by review also gets this test for its automatable part
   (scan, audit); the review itself is in `docs/DEFINITION_OF_DONE.md`.
+- **Process/review-only** = every `+`-separated part of the test type matches one of these
+  case-insensitive regex markers: `\breview\b`, `\bstatus audit\b`, `\bevidence table\b`, `\binspection\b`, `\bmanual\b`, `\bdocument\b`, `\bci\b`, `\[human\]`. Such a row gets the test
+  `REVIEW (no automated test)` (or `HUMAN step` when the test type contains `[HUMAN]`), never a
+  pytest path, because a pytest for a process rule could only be tautological. It is verified
+  by the 02 review (or by the human step and its evidence). A test type with one automated
+  part keeps the pytest name.
 - **mt5** = `yes` when the test type mentions `live`, `demo`, `mql5`: at least part of the
   test needs the Windows host with the terminal (`pytest -m mt5`).
 
@@ -177,7 +188,8 @@ A requirement that names several milestones counts once in each.
 | `tests/integration/` | 94 | 90 |
 | `tests/property/` | 6 | 0 |
 | `tests/security/` | 81 | 0 |
-| `tests/unit/` | 235 | 23 |
+| `tests/unit/` | 226 | 23 |
+| REVIEW (no automated test) | 9 | |
 
 ## 4. Requirements by milestone
 
@@ -399,7 +411,7 @@ A requirement that names several milestones counts once in each.
 | RISK-066 | CRITICAL | Unit + golden vectors (GV-33, GV-39, GV-40) | M3/M7 |  | `tests/unit/test_risk_066_fixture_demo_a_demo.py::test_risk_066_fixture_demo_a_demo` |
 | RISK-067 | CRITICAL | Unit + golden vector (GV-41) | M3/M9 |  | `tests/unit/test_risk_067_schedule_narrowing_optional_part.py::test_risk_067_schedule_narrowing_optional_part` |
 | RISK-090 | CRITICAL | Unit + property + golden vectors | M3 |  | `tests/unit/test_risk_090_config_risk_limits_yaml.py::test_risk_090_config_risk_limits_yaml` |
-| RISK-091 | CRITICAL | Unit + property + golden vectors | M3 |  | `tests/unit/test_risk_091_no_component_other_than.py::test_risk_091_no_component_other_than` |
+| RISK-091 | CRITICAL | Unit + property + golden vectors | M3 |  | `tests/unit/test_risk_091_only_the_user_can.py::test_risk_091_only_the_user_can` |
 | RISK-092 | CRITICAL | Unit + property + golden vectors | M3 |  | `tests/unit/test_risk_092_approval_record_each_user.py::test_risk_092_approval_record_each_user` |
 
 ### M4 (49)
@@ -517,7 +529,7 @@ A requirement that names several milestones counts once in each.
 | RES-070 | CRITICAL | Reference-value tests + registry audit | M6 |  | `tests/unit/test_res_070_operating_envelope_every_strategy.py::test_res_070_operating_envelope_every_strategy` |
 | RES-071 | CRITICAL | Reference-value tests + registry audit | M6 |  | `tests/unit/test_res_071_news_validation_a_strategy.py::test_res_071_news_validation_a_strategy` |
 | RES-072 | CRITICAL | Reference-value tests + registry audit | M6 |  | `tests/unit/test_res_072_intraday_only_because_overnight.py::test_res_072_intraday_only_because_overnight` |
-| RES-073 | HIGH | Reference-value tests + registry audit | M6 |  | `tests/unit/test_res_073_candidate_proposals_decisions_pending.py::test_res_073_candidate_proposals_decisions_pending` |
+| RES-073 | HIGH | Reference-value tests + registry audit | M6 |  | `tests/unit/test_res_073_candidate_proposals_decided_2026.py::test_res_073_candidate_proposals_decided_2026` |
 
 ### M6a (14)
 
@@ -856,16 +868,16 @@ A requirement that names several milestones counts once in each.
 
 | ID | Crit. | Test type | Milestones (traceability) | mt5 | Test |
 | --- | --- | --- | --- | --- | --- |
-| GOV-001 | CRITICAL | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | `tests/unit/test_gov_001_start_every_session_by.py::test_gov_001_start_every_session_by` |
-| GOV-002 | CRITICAL | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | `tests/unit/test_gov_002_never_weaken_skip_or.py::test_gov_002_never_weaken_skip_or` |
-| GOV-003 | CRITICAL | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | `tests/unit/test_gov_003_never_invent_broker_specs.py::test_gov_003_never_invent_broker_specs` |
-| GOV-004 | HIGH | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | `tests/unit/test_gov_004_use_the_terminology_in.py::test_gov_004_use_the_terminology_in` |
-| MI-090 | HIGH | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | `tests/unit/test_mi_090_architecture_impact_report_first.py::test_mi_090_architecture_impact_report_first` |
-| MI-091 | HIGH | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | `tests/unit/test_mi_091_incremental_build_order_m6a.py::test_mi_091_incremental_build_order_m6a` |
-| MI-092 | HIGH | Review (02 prompt) + CI | each milestone (02 review) |  | `tests/unit/test_mi_092_tests_unit_tests_per.py::test_mi_092_tests_unit_tests_per` |
-| MI-093 | CRITICAL | 03 prompt evidence table | each milestone (02 review) |  | `tests/unit/test_mi_093_no_autonomous_live_trading.py::test_mi_093_no_autonomous_live_trading` |
+| GOV-001 | CRITICAL | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | REVIEW (no automated test) |
+| GOV-002 | CRITICAL | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | REVIEW (no automated test) |
+| GOV-003 | CRITICAL | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | REVIEW (no automated test) |
+| GOV-004 | HIGH | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | REVIEW (no automated test) |
+| MI-090 | HIGH | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | REVIEW (no automated test) |
+| MI-091 | HIGH | Review (02 prompt) + STATUS audit | each milestone (02 review) |  | REVIEW (no automated test) |
+| MI-092 | HIGH | Review (02 prompt) + CI | each milestone (02 review) |  | REVIEW (no automated test) |
+| MI-093 | CRITICAL | 03 prompt evidence table | each milestone (02 review) |  | REVIEW (no automated test) |
 | MI-162 | CRITICAL | Review (02 check 47) + config audit | each milestone (02 review) |  | `tests/unit/test_mi_162_auto_all_intent_the.py::test_mi_162_auto_all_intent_the` |
-| MI-199 | HIGH | STATUS audit | each milestone (02 review) |  | `tests/unit/test_mi_199_phases_a_j_and.py::test_mi_199_phases_a_j_and` |
+| MI-199 | HIGH | STATUS audit | each milestone (02 review) |  | REVIEW (no automated test) |
 
 ## 5. Guardian `[HUMAN]` steps (GUARDIAN_SAFETY_SPEC §13; M2 observer and M7b)
 

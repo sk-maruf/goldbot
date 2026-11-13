@@ -49,6 +49,25 @@ AREA_RULES: tuple[tuple[str, str], ...] = (
 DEFAULT_AREA = "unit"
 MT5_KEYWORDS = ("live", "demo", "mql5")
 
+# Process/review-only rows: a row is verified by a review or a human step, not by a pytest file,
+# when EVERY "+"-separated part of its Verification cell matches one of these markers (regex,
+# case-insensitive). A pytest name for such a row could only hold a tautological test. One
+# automated part (e.g. "Security tests + review", "Review (02 check 47) + config audit") keeps
+# the pytest name for that part.
+PROCESS_MARKERS: tuple[str, ...] = (
+    r"\breview\b",
+    r"\bstatus audit\b",
+    r"\bevidence table\b",
+    r"\binspection\b",
+    r"\bmanual\b",
+    r"\bdocument\b",
+    r"\bci\b",
+    r"\[human\]",
+)
+HUMAN_MARKER = "[human]"
+REVIEW_TEST = "REVIEW (no automated test)"
+HUMAN_TEST = "HUMAN step"
+
 # [HUMAN] steps: the step names are parsed from GUARDIAN_SAFETY_SPEC.md section 13. The user
 # instruction and the evidence below are the plan's own wording, keyed by the parsed name; a
 # parsed step without an entry here stops the generator, so a spec change cannot go unnoticed.
@@ -151,7 +170,16 @@ class Requirement:
         return any(key in self.test_type.lower() for key in MT5_KEYWORDS)
 
     @property
+    def process_only(self) -> bool:
+        if self.test_type == UNMAPPED:
+            return False
+        parts = [p.strip().lower() for p in self.test_type.split("+")]
+        return all(any(re.search(m, p) for m in PROCESS_MARKERS) for p in parts)
+
+    @property
     def test_name(self) -> str:
+        if self.process_only:
+            return HUMAN_TEST if HUMAN_MARKER in self.test_type.lower() else REVIEW_TEST
         rid = self.rid.lower().replace("-", "_")
         words = re.findall(r"[a-z0-9]+", self.summary.lower())[:4]
         slug = "_".join(words)[:40].rstrip("_") or "req"
@@ -286,6 +314,11 @@ def render(reqs: list[Requirement], human_steps: list[str]) -> str:
     w(">")
     w("> This is a plan. It holds no test results and moves no requirement to `VERIFIED`")
     w("> (GOV-002).")
+    w(">")
+    w("> Process/review-only rows (every part of `Verification` is a review, STATUS audit,")
+    w("> evidence table, inspection, manual, document, CI or `[HUMAN]` marker; §2) get the test")
+    w(f"> `{REVIEW_TEST}` or `{HUMAN_TEST}` instead of a pytest path, and are verified by the")
+    w("> 02 review or by the human step with its evidence (`docs/DEFINITION_OF_DONE.md`).")
     w("")
     w("## 1. Coverage targets")
     w("")
@@ -313,6 +346,13 @@ def render(reqs: list[Requirement], human_steps: list[str]) -> str:
     w("  function name starts with the `test_<id>` named in the traceability acceptance")
     w("  criterion. A requirement checked by review also gets this test for its automatable part")
     w("  (scan, audit); the review itself is in `docs/DEFINITION_OF_DONE.md`.")
+    marks = ", ".join(f"`{m}`" for m in PROCESS_MARKERS)
+    w("- **Process/review-only** = every `+`-separated part of the test type matches one of these")
+    w(f"  case-insensitive regex markers: {marks}. Such a row gets the test")
+    w(f"  `{REVIEW_TEST}` (or `{HUMAN_TEST}` when the test type contains `[HUMAN]`), never a")
+    w("  pytest path, because a pytest for a process rule could only be tautological. It is verified")
+    w("  by the 02 review (or by the human step and its evidence). A test type with one automated")
+    w("  part keeps the pytest name.")
     kws = ", ".join(f"`{k}`" for k in MT5_KEYWORDS)
     w(f"- **mt5** = `yes` when the test type mentions {kws}: at least part of the")
     w("  test needs the Windows host with the terminal (`pytest -m mt5`).")
@@ -349,10 +389,15 @@ def render(reqs: list[Requirement], human_steps: list[str]) -> str:
     w("")
     w("| Area | Requirements | of which mt5 |")
     w("| --- | --- | --- |")
-    areas = Counter(r.area for r in reqs)
+    tested = [r for r in reqs if not r.process_only]
+    areas = Counter(r.area for r in tested)
     for area in sorted(areas):
-        n_mt5 = sum(r.needs_mt5 for r in reqs if r.area == area)
+        n_mt5 = sum(r.needs_mt5 for r in tested if r.area == area)
         w(f"| `tests/{area}/` | {areas[area]} | {n_mt5} |")
+    for label in (REVIEW_TEST, HUMAN_TEST):
+        n = sum(r.test_name == label for r in reqs)
+        if n:
+            w(f"| {label} | {n} | |")
     w("")
 
     w("## 4. Requirements by milestone")
@@ -366,9 +411,10 @@ def render(reqs: list[Requirement], human_steps: list[str]) -> str:
         w("| --- | --- | --- | --- | --- | --- |")
         for r in rs:
             mt5 = "yes" if r.needs_mt5 else ""
+            test = r.test_name if r.process_only else f"`{r.test_name}`"
             w(
                 f"| {r.rid} | {r.crit} | {esc(r.test_type)} | {esc(r.milestone_text or UNMAPPED)} "
-                f"| {mt5} | `{r.test_name}` |"
+                f"| {mt5} | {test} |"
             )
         w("")
 
@@ -418,11 +464,20 @@ def self_test() -> None:
         "02 review checks it each milestone; zero violations | CRITICAL |\n"
         "| UI-001 | Glass | web |  | `test_ui_001` passes in M4/M9 (theme in M6b); e |  |\n"
         "| UI-002 | X a\\|b | web | Playwright + axe | nothing here |  |\n"
+        "| GOV-005 | Hand | process | [HUMAN] step + manual check | e each milestone |  |\n"
+        "| SEC-001 | Keys | security | Security tests + review | `t` passes in M1; e |  |\n"
         "| RISK-001 | Only the RiskEngine. More | core | Unit + property | "
         "`test_risk_001` passes in M3; evidence | CRITICAL |\n"
     )
     reqs = {r.rid: r for r in parse_requirements(table)}
-    assert list(reqs) == ["RISK-001", "EXE-002", "GOV-001", "UI-001", "UI-002"], reqs
+    assert list(reqs) == [
+        "RISK-001", "EXE-002", "GOV-001", "UI-001", "UI-002", "GOV-005", "SEC-001"
+    ], reqs
+    assert reqs["GOV-001"].process_only and reqs["GOV-001"].test_name == REVIEW_TEST
+    assert reqs["GOV-005"].process_only and reqs["GOV-005"].test_name == HUMAN_TEST
+    assert not reqs["SEC-001"].process_only  # one automated part keeps the pytest name
+    assert reqs["SEC-001"].test_name.startswith("tests/security/test_sec_001_")
+    assert not reqs["UI-001"].process_only and not reqs["RISK-001"].process_only
     assert reqs["RISK-001"].milestones == ("M3",)
     assert reqs["RISK-001"].area == "unit" and not reqs["RISK-001"].needs_mt5
     assert reqs["RISK-001"].test_name == (
@@ -454,6 +509,7 @@ def self_test() -> None:
     ]
     text = render(list(reqs.values()), parse_human_steps(spec))
     assert "UI-001, UI-002" in text and "\r" not in text
+    assert f"| {REVIEW_TEST} |" in text and "test_gov_001" not in text
     assert text == render(list(reqs.values()), parse_human_steps(spec))
     print("self-test: OK")
 
@@ -471,16 +527,23 @@ def main(argv: list[str] | None = None) -> int:
     except SourceError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+    reviewed = sum(r.process_only for r in reqs)
     if args.check:
         current = OUT.read_bytes().decode("utf-8") if OUT.exists() else None
         if current != text:
             print(f"{OUT.relative_to(ROOT)} is out of date; run python tools/gen_test_plan.py")
             return 1
-        print(f"{OUT.relative_to(ROOT)} is up to date ({len(reqs)} requirements)")
+        print(
+            f"{OUT.relative_to(ROOT)} is up to date ({len(reqs)} requirements, "
+            f"{reviewed} review-only/HUMAN)"
+        )
         return 0
     OUT.write_bytes(text.encode("utf-8"))
     unmapped = sum(r.test_type == UNMAPPED or UNMAPPED in r.milestones for r in reqs)
-    print(f"wrote {OUT.relative_to(ROOT)}: {len(reqs)} requirements, {unmapped} UNMAPPED")
+    print(
+        f"wrote {OUT.relative_to(ROOT)}: {len(reqs)} requirements, {unmapped} UNMAPPED, "
+        f"{reviewed} reclassified as review-only/HUMAN (no pytest name)"
+    )
     return 0
 
 

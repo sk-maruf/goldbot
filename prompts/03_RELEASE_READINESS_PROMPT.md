@@ -14,7 +14,8 @@ Read: CLAUDE.md, specifications/*, quality/*, docs/STATUS.md, docs/VERIFIED_SPEC
 docs/research/*, docs/RUNBOOK.md, the last adversarial review outputs, CI results, logs.
 
 1. HARD PRECONDITIONS (any FAIL ⇒ NO-GO, stop there):
-   [ ] docs/PHASE0_CLEARANCE.md contains "STATUS: CLEARED" with a date
+   [ ] docs/PHASE0_CLEARANCE.md has "STATUS: CLEARED" as its last non-empty line (EXE-070), with
+       the date on the "Date cleared" line above it
    [ ] M9 is DONE with an APPROVE review (for enabling automatic entry on live: the live pilot
        report also exists, with ≥ 4 weeks / ≥ 30 trades on live)
    [ ] Every USER_DECISION_REQUIRED parameter is approved with date and reason (RISK-005/092), and

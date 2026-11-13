@@ -63,7 +63,7 @@ and the result streams back over the WebSocket.
 | `POST /v1/strategies/{id}/auto-approval` | STRATEGY_AUTO_APPROVAL | Re-auth; that strategy passed RISK-063; used only in `AUTO_APPROVED_STRATEGIES` |
 | `POST /v1/mcp/admin-requests/{id}/approve` | MCP_ADMIN_APPROVE | Dashboard session only (never an `mcp:*` scope); re-auth where MCP §4.1 requires it |
 | `POST /v1/mcp/clients` | MCP_CLIENT_REGISTER / REVOKE | Re-auth; MCP-030/024 |
-| `POST /v1/limits/tighten` | TIGHTEN_LIMIT | Re-auth; the engine verifies the new value is stricter (RISK-090) |
+| `POST /v1/limits/tighten` | TIGHTEN_LIMIT | Re-auth (API-013); only in a `P-xx`'s TRADING_RISK_SPEC §2 "UI may" direction; the engine verifies in code that the new value is stricter than the current value, else rejects; audited (RISK-091). No route loosens a limit (RISK-090) |
 | `POST /v1/consents` | CONSENT | Re-auth for LLM/MCP |
 
 There are **no** routes to loosen limits, change leverage, place arbitrary orders, edit config files,

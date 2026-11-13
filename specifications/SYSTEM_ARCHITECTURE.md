@@ -149,7 +149,7 @@ emergency actions with lifecycle → broker confirmation or explicit FAILED stat
 | 009 | MCP is optional and stdio-only: read tools plus approved non-trading admin actions, each approved per invocation in the dashboard; no order execution. | MCP with trading tools: an unacceptable path to trading actions. |
 | 010 | Time architecture per `TIME_AND_CLOCK_SPEC.md` (Guardian exports server time). | Using the last tick time as "server now": wrong when the market is quiet or closed. |
 | 011 | Engine ⇄ Guardian channel: SHA-256 integrity + seq + instance + Windows folder ACL; **no shared secret** (GRD-008). | HMAC key in a file or in EA inputs: breaks the keyring-only rule and gives no protection against same-user processes. DLL access to Credential Manager: forbidden by GRD-005 without a new ADR. |
-| 012 | Entry authorization mode: **pending user decision** (D-01). All three modes are specified; none is chosen. | Choosing on the user's behalf. |
+| 012 | Entry authorization mode: user decision D-01 (2026-11-13) = `AUTO_ALL`; until RISK-061 is met, a strategy's entries run under `MANUAL_APPROVAL` (RISK-065). All three modes are specified. | Choosing on the user's behalf. |
 | 013 | Local-only deployment on the user's Windows computer; dashboard-only notifications; no remote access or external monitoring without a separate ADR. | Cloud hosting, VPS, external notification services. |
 
 ## 7. Deployment
@@ -173,9 +173,9 @@ emergency actions with lifecycle → broker confirmation or explicit FAILED stat
 
 ## 8. Explicitly not in v1 (moved to `docs/BACKLOG.md` by M0)
 
-Strategy selector outside M6f (M6f builds one only if the user chooses it in D-12 and at least two
-strategies PASS; it trades only after it PASSes as a C4 strategy, RES-061, MI-052); ML signal models
-(pending decision D-10); PostgreSQL; multi-symbol trading. **Not in the design at all unless the
+Strategy selector outside M6f (M6f builds the one the user chose in D-12, 2026-11-13, once at least
+two strategies PASS; it trades only after it PASSes as a C4 strategy, RES-061, MI-052); ML signal models
+(D-10, 2026-11-13: rule-based only); PostgreSQL; multi-symbol trading. **Not in the design at all unless the
 user decides otherwise through a separate ADR:** cloud or VPS hosting, remote access, Telegram,
 email, SMS or any other external notification channel. **Permanently prohibited:** MCP trading
 tools (MCP-010) and any LLM-generated trade logic (LLM-001).

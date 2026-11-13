@@ -1,9 +1,11 @@
-# STRATEGY_CANDIDATES — M0c proposals for decision D-08
+# STRATEGY_CANDIDATES — M0c proposals for decision D-08 (decided 2026-11-13)
 
 > Status: **PROPOSAL (M0c, 2026-11-13).** Nothing here has been tested. No candidate is claimed to
 > have an edge, a win rate or a profit. "No edge found" is a valid and expected result (RES-020,
-> A-55). Decision **D-08 (initial strategy selection) stays with the user**; this file only lists
-> what the user can choose from (RES-073, MI-050). Every broker-dependent number is `ILLUSTRATIVE`
+> A-55). Decision **D-08 (initial strategy selection) was made by the user on 2026-11-13:
+> research candidate A first, then B, then C** (§7; `docs/STATUS.md` §8). The order is a research
+> order only; each candidate still needs its own `PASS` before it may trade (RES-060). This file
+> lists the candidates (RES-073, MI-050). Every broker-dependent number is `ILLUSTRATIVE`
 > (from the `ILL-CENT` fixture profile, CENT_ACCOUNT_VALIDATION §4) or `BLOCKED` with its A-id.
 > The real symbol spec is `BLOCKED` until M2 (A-05, A-06, A-07); commission until M7 (A-08); the
 > absolute spread cap until M2–M7 (A-40).
@@ -46,7 +48,7 @@
   (EXE-081), and never inside the P-19 window. This is stricter than P-19 alone; P-19/P-33 are
   "widen only", so a stricter strategy rule is allowed (RISK-017).
 - **One position slot.** With P-31 = P-01 = 0.25% (D-04, D-09), a candidate arriving while any
-  GoldBot position is open is rejected `AGGREGATE_RISK` (RISK-015). Simultaneous same-direction
+  GoldBot position is open is rejected `AGGREGATE_RISK` (RISK-015; counted in A10, CH-92). Simultaneous same-direction
   candidates go to the RiskEngine in a fixed, pre-registered strategy priority (MI-152); opposite
   candidates produce `NO_TRADE CONFLICT` (MI-047). No re-entry in the same session after a
   stop-out, so a loss never triggers more trading.
@@ -66,17 +68,24 @@ Three walls bound the stop distance `D` (USD) a signal can have and still be tra
 
 | Wall | Rule | Formula | Value (ILLUSTRATIVE) | Rejection code | Counted in A10? |
 | --- | --- | --- | --- | --- | --- |
-| Spread floor | P-13 component C | `D ≥ spread / 0.10` | D ≥ $3.00 | `SPREAD` (pre-trade gate) | No |
-| Exposure floor | RISK-013 volume vs EXP-003, P-09 = 1.0 | P-09 allows ≤ 0.02 lot; the budget gives ≥ 0.03 lot when `D ≤ 25/0.03/100 − 0.30` | D ≤ $8.03 is rejected | `EFFECTIVE_LEVERAGE` (GV-17) | **No** |
+| Spread floor | P-13 component C | `D ≥ spread / 0.10` | D ≥ $3.00 | `SPREAD_TOO_WIDE` (pre-trade gate) | Yes (CH-92) |
+| Exposure floor | RISK-013 volume vs EXP-003, P-09 = 1.0 | P-09 allows ≤ 0.02 lot; the budget gives ≥ 0.03 lot when `D ≤ 25/0.03/100 − 0.30` | D ≤ $8.03 is rejected | `EFFECTIVE_LEVERAGE` (GV-17) | Yes (CH-92) |
 | Minimum-lot ceiling | RISK-013, CENT-030 | `D ≤ budget/1 USC − 0.30` | D ≤ $24.70 (≤ $22.20 at 9,000 USC equity) | `MIN_VOLUME_EXCEEDS_BUDGET` | Yes |
+
+A10 is the capital-feasibility rejection rate (CENT-030, user decision 2026-11-13, CH-92): signals
+rejected with `MIN_VOLUME_EXCEEDS_BUDGET`, `EFFECTIVE_LEVERAGE`, `MARGIN_UTILISATION`,
+`MARGIN_LEVEL`, `FREE_MARGIN`, `STOP_OUT_DISTANCE`, `AGGREGATE_RISK` or `SPREAD_TOO_WIDE`, divided by
+the signals not rejected for a reason unrelated to capital or cost (stale data, blackout, pre-close
+window and trading state are excluded from both counts). Above 50% the strategy is
+`CAPITAL-INFEASIBLE` (CENT-031). The `MIN_VOLUME_EXCEEDS_BUDGET` rate alone is still reported.
 
 Worked rows (RISK-013, round down; EXP-003 at $4,070):
 
 | Stop D | Volume | Effective leverage | Modelled loss incl. P-26 | Outcome under the current spec |
 | --- | --- | --- | --- | --- |
-| $2.50 | 0.08 | 3.26× | — | `SPREAD` first (0.30 > 10% of 2.50) |
-| $5.00 | 0.04 | 1.63× | — | `EFFECTIVE_LEVERAGE` |
-| $8.00 | 0.03 | 1.22× | — | `EFFECTIVE_LEVERAGE` |
+| $2.50 | 0.08 | 3.26× | — | `SPREAD_TOO_WIDE` first (0.30 > 10% of 2.50) (A10) |
+| $5.00 | 0.04 | 1.63× | — | `EFFECTIVE_LEVERAGE` (A10) |
+| $8.00 | 0.03 | 1.22× | — | `EFFECTIVE_LEVERAGE` (A10) |
 | $10.00 | 0.02 | 0.81× | 20.60 USC | Tradeable |
 | $15.00 | 0.01 | 0.41× | 15.30 USC | Tradeable |
 | $24.70 | 0.01 | 0.41× | 25.00 USC | Tradeable (at the budget) |
@@ -86,9 +95,9 @@ Reading of the table:
 
 - At this capital the **minimum lot binds against wide stops**, not tight ones (CGV-01, CGV-06).
 - The **exposure floor binds against tight stops**: GV-17 rejects a trade whose budget-derived
-  volume breaches P-09, and the spec does not say the volume is reduced to fit. If that reading is
-  right, every stop ≤ ~$8.03 is rejected, and A10 never sees it (§9, gap G1/G2). This is a risk-rule
-  question for the user (CLAUDE.md §7); this document does not answer it.
+  volume breaches P-09, and the user decided on 2026-11-13 that a leverage or margin breach keeps
+  rejecting the trade (no size-down; §9 G1). So every stop ≤ ~$8.03 is rejected
+  `EFFECTIVE_LEVERAGE`, and since CH-92 A10 counts it (§9 G2).
 - The walls move: the ceiling falls with equity (CENT-032); the floor rises with the gold price
   (if 0.01 lot's notional exceeded half the equity, P-09 would allow only 0.01 lot and the floor
   would move to ~$12.20).
@@ -121,7 +130,8 @@ stops the costs alone are that size, before latency (BT-023) and rejects (BT-028
 - For C1 to hold, the constants in §3–§5 must be frozen **before S0 looks at any data** (§9 G5).
 - Verdicts: `PASS` (every applicable criterion PASS and the holdout inside the walk-forward 95%
   band), `FAIL`, `INCONCLUSIVE` (for example A1 < 200 trades or the A2 interval straddling zero;
-  never converted to PASS, RES-026), `CAPITAL-INFEASIBLE` (A10 > 50%, CENT-031).
+  never converted to PASS, RES-026), `CAPITAL-INFEASIBLE` (A10 capital-feasibility rejection
+  rate > 50%, CENT-031, CH-92).
 - Falsification common to all three: the hypothesis is **rejected (FAIL)** if, on walk-forward
   out-of-sample PT1 trades, the net expectancy point estimate is ≤ 0 (A2), or profit factor after
   costs < 1.15 (A3), or < 60% of windows are positive (A4), or DSR < 0.95 with the honest trial
@@ -199,10 +209,13 @@ can only come after the blackout. The range is still measured.
 **Stop-distance distribution and A10 (argued in advance).** D ≈ half the range width plus the
 breakout distance at entry, so D tracks the first-hour range. *ILLUSTRATIVE:* if first-hour ranges
 were $8–25, stops would sit roughly between $5 and $20, straddling the exposure floor ($8.03) and
-mostly below the minimum-lot ceiling ($24.70). **Expected A10 (`MIN_VOLUME_EXCEEDS_BUDGET`): low,
-under ~15% at 10,000 USC**, rising with drawdown (CENT-032) and in the top volatility tercile.
-**Expected `EFFECTIVE_LEVERAGE` share: material (possibly a third or more of signals) under the
-current reading of GV-17.** S0 measures both (00b prompt).
+mostly below the minimum-lot ceiling ($24.70). The `MIN_VOLUME_EXCEEDS_BUDGET` part is argued low,
+under ~15% at 10,000 USC; the `EFFECTIVE_LEVERAGE` part is material (possibly a third or more of
+signals, since breaches are rejected, not sized down). Under CH-92 both count, plus any
+`SPREAD_TOO_WIDE` rejections around the open. **Expected A10 (capital-feasibility rate): moderate
+to high, roughly 35–50% at 10,000 USC, and above 50% (`CAPITAL-INFEASIBLE`) is a real
+possibility**, rising with drawdown (CENT-032) and in the top volatility tercile. S0 measures the
+rate and its parts (00b prompt).
 
 **Costs that dominate.** Spread and slippage around the open, where spreads may be wider than the
 daily median (measured, A-40); stop slippage on failed breakouts. At $10 stops the prior costs are
@@ -259,10 +272,13 @@ percentile for the same hour on the training split. Must close by P-33. Quantiza
 
 **Stop-distance distribution and A10 (argued in advance).** D = 1.5 × H1 ATR + spread, the widest
 stops of the three. *ILLUSTRATIVE:* H1 ATR $6 → D ≈ $9.30 (0.02 lot); $10 → $15.30 (0.01 lot);
-above about $16.27 → D > $24.70 → `MIN_VOLUME_EXCEEDS_BUDGET`. **Expected A10: the highest of the
-three; plausibly 10–50% overall and possibly above 50% in the top volatility tercile or after a
-drawdown (CENT-032), so `CAPITAL-INFEASIBLE` is a live possibility.** The exposure floor rarely
-binds (only when H1 ATR < ~$5.15). If A10 is high only in one tercile, a version restricted to the
+above about $16.27 → D > $24.70 → `MIN_VOLUME_EXCEEDS_BUDGET`. The exposure floor rarely binds
+(only when H1 ATR < ~$5.15) and the spread floor does not bind at these stops, so CH-92 adds
+little here. **Expected A10 (capital-feasibility rate): about the same as its min-volume rate,
+plausibly 10–50% overall and possibly above 50% in the top volatility tercile or after a drawdown
+(CENT-032), so `CAPITAL-INFEASIBLE` is a live possibility.** Under the CH-92 definition B is no
+longer clearly the most exposed of the three: A and C now carry their tight-stop rejections in
+A10 too. If A10 is high only in one tercile, a version restricted to the
 other terciles is a **new** pre-registered strategy, never a quiet filter (CENT-031, RES-022).
 
 **Costs that dominate.** Per-trade costs are small in R (about 0.03R at $20 stops). The binding
@@ -319,17 +335,19 @@ session hour on the training split. Must close by P-33. Quantization: not opted 
 
 **Stop-distance distribution and A10 (argued in advance).** Stops sit just beyond a nearby M5
 extreme, so they are the tightest of the three. *ILLUSTRATIVE:* if M5 ATR were $2–4, most stops
-would fall between about $1 and $6. **Expected A10: near 0%**, because the minimum-lot ceiling is
-far away. **Expected tradeable share: low.** Stops under $3.00 fail the spread floor, and stops
-under $8.03 fail the exposure floor under the current reading of GV-17. Neither is counted by A10,
-so C could report A10 `PASS` while very few of its signals are actually tradeable (§9 G1/G2).
+would fall between about $1 and $6. Stops under $3.00 are rejected `SPREAD_TOO_WIDE` and stops
+from $3.00 to $8.03 `EFFECTIVE_LEVERAGE` (no size-down, §9 G1). The minimum-lot ceiling plays no
+part, so the `MIN_VOLUME_EXCEEDS_BUDGET` rate alone would be near 0%. **Expected A10
+(capital-feasibility rate, CH-92): close to 100% under these illustrative numbers, so
+`CAPITAL-INFEASIBLE` (CENT-031) is the expected verdict.** Before CH-92 the same candidate could
+have shown A10 near 0% with almost nothing tradeable; the new definition makes that visible.
 MI-053.8 anticipates exactly this (`CAPITAL-INFEASIBLE` or `FAIL`), and A-67 is `UNKNOWN by design`.
 
 **Why it is still proposed.** D-07 asks for scalping to be researched, and the spec allows
 scalping as a falsifiable test (MI-053.8, S0). S0 can show in a short throwaway run, without any
 profit computation, whether enough of its signals survive the three walls. If they do not, the
 honest record is "scalping infeasible at this capital under the current rules", and no M6e time is
-spent on it unless the user changes an input (equity, P-01, or the exposure-floor question).
+spent on it unless the user changes an input (equity, P-01 or P-09; each a user decision).
 
 **Costs that dominate.** Spread and stop slippage: at $3–5 stops the priors give 0.11–0.18R per
 trade before stop slippage, 0.14–0.23R under A9 stress (§2.3). Latency (BT-023 prior 150–600 ms)
@@ -354,21 +372,25 @@ and slippage (A-41, A-42) to replace the BT-023/024 priors.
 | Stop basis | Range midpoint | 1.5 × H1 ATR | Beyond the M5 sweep extreme |
 | Stop size (ILLUSTRATIVE) | ~$5–20 | ~$9–25+ | ~$1–6 |
 | Binding wall (argued) | Exposure floor, some ceiling | Minimum-lot ceiling | Spread and exposure floors |
-| Expected A10 (argued) | Low, < ~15% | Highest, 10–50%+ | Near 0% |
-| Untradeable share outside A10 (argued) | Material | Small | Most signals |
+| Expected A10, capital-feasibility rate (argued, CH-92) | Moderate to high, ~35–50%; > 50% possible | 10–50%+, about its min-volume rate | Close to 100%; `CAPITAL-INFEASIBLE` expected |
+| Of which `MIN_VOLUME_EXCEEDS_BUDGET` (argued, still reported) | Low, < ~15% | 10–50%+ | Near 0% |
 | Cost share of R | Moderate | Small | Large |
 | News | Not validated, P-18 applies | Not validated, P-18 applies | Not validated, P-18 applies |
 | Session-end exit | 240 min or P-33 | 360 min or P-33 | 60 min or P-33 |
-| Main failure risk | False breakouts; exposure floor | A10, P-33 truncation, low A1 | Costs, exposure floor |
+| Main failure risk | False breakouts; A10 via the exposure floor | A10, P-33 truncation, low A1 | A10 via the spread and exposure floors; costs |
 | Data per 200 OOS trades | Moderate | Longest | Shortest (if tradeable) |
 
 All "expected" and "argued" entries are reasoning before any test, not measurements. S0 replaces
 them with PT0 feasibility numbers; M6e replaces them with PT1 verdicts.
 
-## 7. How the user chooses (D-08)
+## 7. How the user chose (D-08)
 
-D-08 can be made now or after S0. S0 is advisory and runs on every candidate in this file
-regardless (00b prompt), so choosing after S0 costs nothing except time. The choices:
+**Decision (user, 2026-11-13; `docs/STATUS.md` §8):** research candidate A (opening-range breakout
+and retest) first, then B, then C. S0 is advisory and still runs on every candidate in this file
+(00b prompt). The research order is not a strategy priority for live candidates; that order
+(MI-152) is stated in the pre-registrations.
+
+Background: the options and trade-offs considered before the decision.
 
 | Option | What it means | Trade-offs |
 | --- | --- | --- |
@@ -379,11 +401,12 @@ regardless (00b prompt), so choosing after S0 costs nothing except time. The cho
 
 Points that matter for the choice:
 
-- **Feasibility before edge.** At 10,000 USC and P-01 = 0.25%, B is most exposed to A10 and C to
-  the exposure and spread floors. A sits between them. None of this says anything about edge.
-- **The exposure-floor question (§9 G1)** decides whether A and C are mostly tradeable at all. It
-  is a risk-rule question and needs the user's answer before S0 results can be read, because S0
-  measures A10 only by default.
+- **Feasibility before edge.** At 10,000 USC and P-01 = 0.25%, B is most exposed to the
+  minimum-lot ceiling, A and C to the exposure floor, and C also to the spread floor. Since CH-92
+  all of these count in A10. None of this says anything about edge.
+- **The exposure-floor question (§9 G1)** was answered on 2026-11-13: keep rejecting (no
+  size-down). With CH-92 that floor now counts in A10, so it can make A and C
+  `CAPITAL-INFEASIBLE`.
 - **Trade count.** B gives the fewest trades; reaching A1 = 200 OOS trades may need more history
   than the cent account provides (§2.5, BLOCKED until M2).
 - **Priority order.** With several strategies and one slot, the pre-registration must state which
@@ -409,12 +432,12 @@ Points that matter for the choice:
 
 | # | Where | Finding |
 | --- | --- | --- |
-| G1 | TRADING_RISK_SPEC RISK-013, EXP-003, GV-17 | Volume comes from the budget only; GV-17 rejects `EFFECTIVE_LEVERAGE` instead of reducing volume. At ILL-CENT and $4,070, every stop ≤ ~$8.03 is rejected. Whether the RiskEngine may reduce volume to meet P-09/P-10/P-11 is unstated. Risk-rule question for the user |
-| G2 | CENT-030/031, A10 | The feasibility rate counts only `MIN_VOLUME_EXCEEDS_BUDGET`. `EFFECTIVE_LEVERAGE`, `SPREAD` (P-13 C) and `AGGREGATE_RISK` (shared slot) are not in any capital-feasibility criterion, so a strategy can pass A10 while mostly untradeable |
+| G1 | TRADING_RISK_SPEC RISK-013, EXP-003, GV-17 | **RESOLVED 2026-11-13:** the user decided "keep reject": a leverage or margin breach rejects the trade, with no size-down (`docs/STATUS.md` §8) |
+| G2 | CENT-030/031, A10 | **RESOLVED by CH-92:** A10 is the capital-feasibility rejection rate over every capital and cost code (CENT-030/031) |
 | G3 | BACKTESTING_SPEC §3; TIME-042/043; MI-196 | No BT rule simulates the P-18 blackout (RISK-018) for non-news-validated strategies, and no historical event source is named (TIME-043 validates only a live export < 24 h old). MI-196 mentions "historical news-event replay" without a source |
 | G4 | RES-030, MI-035 | Session labels Asia/London/New York have no defined hours or DST rule |
 | G5 | RES-023 (C1) vs 00b S0 prompt | C1 needs constants fixed "before any data was examined"; S0 examines stop distances on the same history before pre-registration. Whether S0 counts as examining data is unstated |
-| G6 | RES-061, MI-052 | Both still say D-12 is pending; STATUS §8 records it decided 2026-11-13 |
+| G6 | RES-061, MI-052 | **RESOLVED:** D-12 decided 2026-11-13 (prevalidated C4 selector, built in M6f only if its condition holds; `docs/STATUS.md` §8) |
 | G7 | RES/BT per-strategy testing vs D-09 + P-31 = P-01 | Strategies sharing one slot block each other live; per-strategy backtests do not simulate that, so the live trade set differs from the tested one. No criterion covers the joint run |
 | G8 | P-19 | "None in the first 30 min after an open": unclear whether "open" means only a broker session open or also the London/New York labels |
 | G9 | EXE-081 vs RES-070 | EXE-081 uses a strategy's "expected holding time", but RES-070's envelope list has no `max_hold` field to declare it |
@@ -423,11 +446,13 @@ Points that matter for the choice:
 
 ## 10. Next
 
-1. User chooses D-08 (now or after S0) and answers G1.
+1. Done 2026-11-13: D-08 (research A, then B, then C) and G1 (keep reject).
 2. S0 (00b prompt) measures, per candidate, at P-01 = 0.10/0.25/0.50% (none an approval): the
-   stop-distance distribution, the widest feasible stop, the A10 rate, the spread share and
+   stop-distance distribution, the widest feasible stop, the A10 capital-feasibility rate and
+   its parts by rejection code (CH-92), the spread share and
    surviving signals per week, labelled `PT0 — FEASIBILITY ONLY, NOT A RESULT`, without touching the
    RES-005 holdout and without computing profit (RES-021).
-3. M6e: one pre-registration per chosen candidate (`research/prereg/<strategy>@<version>.md`),
+3. M6e: one pre-registration per candidate in the D-08 order A, B, C
+   (`research/prereg/<strategy>@<version>.md`),
    committed before any OOS run, with the constants above, the priority order and the A1–A10
    thresholds. Verdicts follow §2.4; "no candidate passed" is a successful M6 outcome (RES-020).

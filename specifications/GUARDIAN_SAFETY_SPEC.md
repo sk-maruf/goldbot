@@ -14,9 +14,10 @@
   (GRD-028), emergency retry settings (same structure as P-25), `MAGIC_ENGINE`, `MAGIC_GUARDIAN`,
   and a `rearm_counter` (GRD-016). The inputs contain **no secret**.
 - **GRD-003** The engine's `guardian_config.json` may only **tighten** these inputs. For every
-  limit, the Guardian uses `min(input, file)` for loss and size limits and `max(input, file)` for
-  grace and margin floors where stricter means larger. Loosening values in the file are ignored and
-  reported.
+  limit, the Guardian uses the stricter value: `min(input, file)` for loss and size limits and for
+  the missing-stop grace seconds (a shorter grace is stricter; a longer window delays protective
+  action); the earlier of the two close deadlines (GRD-028); and `max(input, file)` only for margin
+  floors, where stricter means larger. Loosening values in the file are ignored and reported.
 - **GRD-004** The Guardian never opens a position, never places a pending order, never widens an
   SL, and never changes account settings.
 - **GRD-005** Size target: ≤ 1,000 lines of MQL5, no external DLLs, no web requests.
@@ -94,9 +95,11 @@ allowed in the data and common-data paths].
 - **GRD-012 Staleness.** The Guardian considers the engine STALE when `seq` hasn't changed for
   15 s (P-21). The engine considers the Guardian stale after 20 s → T9.
 - **GRD-013** If the engine's `effective_limits` check finds the Guardian **looser** than the
-  approved P-02/P-04/P-05/P-32, or its close deadline later than the session end minus 2 × the P-25
+  approved P-02/P-04/P-32, its max-open-positions input above floor(P-31 ÷ P-01) (P-05 has no
+  number of its own: it is set per strategy within P-31; the bound is 1 with the approved values),
+  or its close deadline later than the session end minus 2 × the P-25
   global deadline → ENTRY_STOP and alert ("Guardian inputs looser than policy"). Tighter is
-  acceptable and is displayed. While any of those parameters is still USER_DECISION_REQUIRED, the
+  acceptable and is displayed. While any of those parameters is not approved, the
   check compares against the fixture values, and the engine can then start only in fixture demo
   (RISK-066), never in LIVE (RISK-005).
 
@@ -170,7 +173,10 @@ allowed in the data and common-data paths].
 ## 9. Duplicate-action and conflict prevention
 
 - **GRD-050 Lease.** When the engine starts an emergency action, it writes
-  `emergency_lease_until_utc` (now + 30 s) in its heartbeat. While the lease is valid and the engine
+  `emergency_lease_until_utc` in its heartbeat. The initial lease is at least the P-25 global
+  deadline (now + 60 s with the current P-25), and the engine renews it on every heartbeat while its
+  emergency run is active, so the Guardian never starts a parallel close run while the engine's run
+  is live. While the lease is valid and the engine
   is HEALTHY, the Guardian does not start the same action and only verifies. After the lease expires
   or the engine goes stale, the Guardian may act.
 - **GRD-051 Check-then-act.** Before every action, both sides re-read the specific position

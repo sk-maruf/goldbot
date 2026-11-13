@@ -100,7 +100,7 @@ corrected rules:
 |---|---|---|
 | C1 Pre-specified rule | Exactly **one** configuration was ever evaluated on any non-training data, and its numeric constants were fixed in the pre-registration before any data was examined | Walk-forward without re-fitting; DSR with trial count = registry count for the whole strategy family (other C1 ideas tested count too); sensitivity (A8) on every numeric constant; PBO is N/A |
 | C2 Tuned rule | ≥ 2 configurations evaluated (any grid, any manual retry) | Parameters chosen on each train window only; PBO via CSCV over the full evaluated grid; DSR with the full trial count; A8 around the chosen point |
-| C3 ML-assisted / hybrid (pending decision D-10) | Any fitted model | Purging and embargo (RES-007); nested walk-forward (model selection inside each train window); feature-importance stability across windows; PBO over model and hyperparameter choices; DSR; A8 on hyperparameters; frozen model hash in the strategy version |
+| C3 ML-assisted / hybrid (not used: D-10, 2026-11-13, rule-based only) | Any fitted model | Purging and embargo (RES-007); nested walk-forward (model selection inside each train window); feature-importance stability across windows; PBO over model and hyperparameter choices; DSR; A8 on hyperparameters; frozen model hash in the strategy version |
 | C4 Strategy selector | A rule choosing among strategies (RES-061) | Treated as one strategy: every candidate × selection-rule combination counts as a trial; PBO and DSR over those combinations; walk-forward of the selector, never of its components alone |
 
 - **RES-024 Per-criterion results.** Each criterion A1–A10 is reported as exactly one of:
@@ -155,7 +155,7 @@ corrected rules:
 - **RES-040 Strategy states:** `ACTIVE` → `WATCH` → `PAUSED` (research-only, no signals) →
   `RETIRED`.
 
-| Transition | Trigger (defaults, user-approved in M0) |
+| Transition | Trigger (defaults, approved by the user as proposed 2026-11-13, A-47) |
 |---|---|
 | ACTIVE → WATCH | Rolling 30-trade mean R below the lower edge of the BT §6 band; or a CUSUM alarm on R (reference = backtest mean − 0.5σ, threshold h = 5σ); or an EXE-060 breach |
 | WATCH → PAUSED | WATCH persists for 20 more trades; or drawdown attributable to the strategy ≥ 50% of P-04 |
@@ -177,8 +177,8 @@ corrected rules:
   selector that is itself registered and validated as a C4 strategy (§5.1): its inputs are fixed in
   advance (e.g. session, volatility tercile, spread state) and **never** a strategy's own recent P/L
   alone; it has its own pre-registration and version; and it must PASS on its own. Until a selector
-  has PASSed, each strategy runs only within its own envelope, with no switching. Whether adaptive
-  selection is wanted at all is pending decision D-12.
+  has PASSed, each strategy runs only within its own envelope, with no switching. D-12 (decided
+  2026-11-13): the user chose the prevalidated selector; it is built and validated in M6f.
 
 ## 10. Strategy operating envelope, news validation and candidates
 
@@ -198,13 +198,14 @@ corrected rules:
 - **RES-072 Intraday only.** Because overnight and weekend holding is prohibited, backtests force a
   close at the P-33 deadline (BT-034), and a strategy whose edge depends on holding past it fails
   A9. Swing styles are therefore incompatible with the current invariants (decision D-07 note).
-- **RES-073 Candidate proposals (decisions pending).** M0 **proposes** 2–3 simple candidates for the
+- **RES-073 Candidate proposals (decided 2026-11-13).** M0 **proposes** 2–3 simple candidates for the
   user to choose from, drawn from the strategy families in `MARKET_INTELLIGENCE_SPEC.md` MI-050
   (e.g. a London or New York session breakout/retest, including opening-range variants; a
   volatility-scaled H1 trend-following rule with a session-end exit; a liquidity-sweep reversal). Each states its
   class, envelope, stop-distance distribution and expected A10 rejection rate **before** testing.
-  The choices of style, initial strategy, number of strategies and rule-based vs ML vs hybrid remain
-  user decisions D-07..D-11. Order-flow strategies are out of scope: retail MT5 tick data has no
+  The choices of style, initial strategy, number of strategies and rule-based vs ML vs hybrid were
+  decided by the user on 2026-11-13 (D-07..D-11; D-08: candidate A first, then B, then C; D-10:
+  rule-based only). Order-flow strategies are out of scope: retail MT5 tick data has no
   reliable traded volume on CFDs [ASSUMPTION; verify `volume`/`flags` fields in M2].
 
 ## 11. Verdict definitions

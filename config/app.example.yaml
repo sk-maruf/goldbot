@@ -72,5 +72,6 @@ llm:
 
 mcp:
   # Disabled. Optional stdio server only; it never executes, modifies or closes orders and never
-  # changes risk, Guardian or safety state (MCP-001..030). Not built until the user chooses it.
+  # changes risk, Guardian or safety state (MCP-001..030). Built in M8 (9 read tools + 3 admin
+  # actions, user choice 2026-11-13); stays disabled until the user registers a client (MCP-030).
   enabled: false
