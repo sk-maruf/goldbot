@@ -15,7 +15,7 @@ dependency order in `prompts/01_MILESTONE_PROMPTS.md`). The M0 review runs once,
 | M0b ADRs, schemas, config examples | DONE | APPROVE (M0 review, §13) | 2026-11-13 |
 | M0c UI spec, candidates, test plan, runbook, DoD, Phase 0, backlog, review | DONE | APPROVE (M0 review, §13) | 2026-11-13 |
 | S0 Feasibility spike (advisory, gates nothing) | DONE (§14) | n/a | 2026-11-13 |
-| M1 Foundation | IN PROGRESS (plan approved 2026-11-13; see §12) | | |
+| M1 Foundation | DONE (§15) | APPROVE (re-review after fixes, §15) | 2026-11-14 |
 | M2a Read-only MT5 and discovery · M2b 24 h soak | NOT STARTED | | |
 | M3 Decimal and RiskEngine | NOT STARTED | | |
 | M4 Dashboard (read-only) | NOT STARTED | | |
@@ -231,44 +231,30 @@ machine reused for closes; GRD-010 field named `schema` vs DATA-010 `schema_vers
 reconciliation flag absent from the heartbeat; ADR-007 manual blackout schedule undefined; MCP-015
 128-char limit vs a 1,000-char journal note; P-32 fixture "= P-01".
 
-## 12. Next (RESUME POINT, 2026-11-13)
+## 12. Next (RESUME POINT, 2026-11-14)
 
-**M1 is IN PROGRESS on branch `m1-foundation`** (plan approved by the user 2026-11-13; M0 tagged
-`m0-approved`; S0 done, §14). The session was checkpointed mid-TDD: tests are written and RED,
-most implementations are missing. Already in place: `pyproject.toml` (Python 3.13, uv), `uv.lock`,
-`.gitattributes`, `.gitignore`, `.pre-commit-config.yaml` (ruff + gitleaks),
-`.github/workflows/ci.yml` (Windows + Linux), repo layout `src/goldbot/{core,intelligence,engine,
-adapters,api,research,llm,mcp}`, `tests/{unit,property,golden,integration,chaos,e2e,security}`.
+**M1 is DONE** (review APPROVE, §15) on branch `m1-foundation`, pushed to the user's private repo
+`origin` = `https://github.com/sk-maruf/goldbot.git` (branches `main`, `m1-foundation`, tag
+`m0-approved`). GitHub Actions CI (Windows + Linux) runs on push; confirm it is green before merging.
 
-Resume by re-launching four TDD builders on disjoint ownership (the prompts are in the session
-transcript; each must first read its existing RED tests and keep them unless they contradict the
-spec):
+**Next: M2a Read-only MT5 and discovery** (then M2b 24 h soak). Start with a plan for user approval
+(milestone loop, CLAUDE.md §4). M2 must, before any code relies on them:
+- verify A-72 (`trade_allowed` vs investor login) with a known investor and a known trading login;
+- verify the FakeBroker beliefs in A-73 against the real terminal (order_check success retcode,
+  history date window vs server time, partial-fill history state, last_error codes and reset,
+  SL/TP side reference price, market request without price);
+- install the strict decimal context (convert.DECIMAL_CONTEXT) process-wide at engine startup;
+- handle off-tick market quotes in the adapter (to_decimal quantizes prices; volume off-step is refused);
+- create `config/session_exceptions.yaml` from the example; run `goldbot doctor` online (the NTP flow
+  is listed in PRIVACY_POLICY §5); an `--offline` run never counts for RUNBOOK §3 step 14 (A-75).
 
-1. Money: `core/convert.py`, `core/money.py`, `core/rounding.py` — tests exist:
-   `tests/unit/test_{convert,money,rounding}.py`, `tests/property/test_money_properties.py`,
-   `tests/golden/test_gv_money.py`, `tests/security/test_no_decimal_float.py`. RISK-020..025, GV-06/25/26.
-2. Time/obs/secrets/audit: `core/clock.py` (written), `core/ntp.py` (stdlib SNTP), `core/logs.py`
-   (structlog + SEC-004 redaction), `core/secrets.py` (keyring), `core/audit.py` (SEC-022 chain).
-   Tests exist: `tests/unit/test_clock.py`, `tests/security/test_naive_datetime_ban.py`; missing:
-   ntp, logs, redaction property, secrets, audit, audit tamper.
-3. Config/env/Phase-0/doctor/models: `config.py`, `envguard.py`, `phase0.py`, `cli.py` (`goldbot
-   doctor`), `models/` (AuditEvent, HealthStatus + DATA-011 sync test), `config/schema/app.schema.json`,
-   `config/schema/session_exceptions.schema.json`. Tests exist: `tests/unit/test_{config,envguard,phase0}.py`.
-4. Broker: `adapters/broker_port.py` (written), `adapters/fake_broker.py`, fixtures
-   `tests/fixtures/broker/ILL-{CENT,STD}.json` (written). Tests exist: `tests/unit/test_broker_port.py`;
-   missing: `tests/integration/test_fake_broker.py`.
-
-Interfaces fixed for all builders: `Clock` (utc_now, monotonic_ns), `FakeClock`, `ntp.query_offset`,
-`ntp.check_offsets`, `NtpResult(server, offset_ms, rtt_ms)`, `secrets.get_secret/set_secret/
-delete_secret`, `AuditLog(path, env, clock).append(event_type, actor, payload)/.verify_chain()`.
-
-Then: full suite + coverage (≥ 95 % branch on core/money.py, core/convert.py), ruff, pyright,
-`goldbot doctor --offline`; independent code review (ecc:code-reviewer) and security review
-(ecc:security-reviewer); push to the user's private repo `https://github.com/sk-maruf/goldbot.git`
-(add as `origin`; the user signs in on first push) so CI runs on Windows + Linux; then mark M1 DONE.
-
-Follow-ups: UI_SPEC §11 OPEN items feed M4/M8; dashboard-tightened value storage vs RISK-090 hash
-(M3/M4); GRD-003 retry settings direction (M7b); S0 finding on signal frequency for M6.
+Follow-ups carried: UI_SPEC §11 OPEN items feed M4/M8; dashboard-tightened value storage vs RISK-090
+hash (M3/M4); GRD-003 retry settings direction (M7b); S0 finding on signal frequency for M6;
+FakeBroker lacks pending orders/CANCEL_PENDING, freeze level, requotes, disconnects (M7, A-74);
+audit tail truncation and table+marker deletion need the off-box head-hash anchor (M8, PRV-030);
+`common.schema.json` actor pattern is looser than AuditLog's `[A-Za-z0-9_.:-]{1,128}` (tighten with
+a schema change when convenient); DATA-011 TypeScript leg joins in M4; DATA-010 needs an
+every-schema test.
 
 ## 13. M0 review record (2026-11-13)
 
@@ -310,3 +296,47 @@ PASS verdict in a reasonable time; M6 pre-registration must address signal frequ
 tuning on this data). (2) Stops computed from bars are off the tick grid; strategies need on-tick
 SL rules or the RISK-025 quantization opt-in. (3) A-72: the investor-login flag could not be
 confirmed (user statement recorded).
+
+## 15. M1 record (2026-11-14)
+
+**Built (TDD, four parallel builders on disjoint modules, each RED then GREEN):**
+`core/convert.py`, `core/money.py`, `core/rounding.py` (RISK-020..025: Decimal boundary, FloatOperation
+trap, volume floor, OFF_TICK); `core/clock.py`, `core/ntp.py` (TIME-010/011/015: stdlib SNTP with
+nonce echo); `core/logs.py` (OBS-010/011, SEC-004 redaction); `core/secrets.py` (SEC-001, keyring);
+`core/audit.py` (SEC-022 SHA-256 chain in SQLite, append-only triggers, DDL/trigger and env checks,
+store marker); `config.py` (RISK-005/066/090/092), `envguard.py` (DATA-005), `phase0.py` (EXE-070),
+`cli.py` (`goldbot doctor`), `models/` (DATA-010/011 sync for AuditEvent, HealthStatus),
+`config/schema/{app,session_exceptions}.schema.json`; `adapters/broker_port.py`,
+`adapters/fake_broker.py` (ADR-006; ILLUSTRATIVE; validates volume/price/stops/margin/no-change).
+`config/app.yaml` created from the example (DEMO placeholder, fixture_demo false; no decision).
+
+**Evidence (commit 519a1c1, Windows, Python 3.13):** `uv run pytest -q -m "not mt5"` 550 passed;
+branch coverage 98 % overall, 100 % on core/convert, money, rounding, audit, clock, ntp, secrets,
+envguard, phase0; `ruff check .` clean; `pyright` 0 errors (strict on core); `gen_test_plan --check`
+up to date; `goldbot doctor --offline` 0 required failures (NTP SKIPPED, Guardian NOT AVAILABLE (M7));
+gitleaks over all files passed.
+
+**Reviews (fresh agents that did not write the code):** ecc:code-reviewer APPROVE WITH FIXES;
+ecc:security-reviewer APPROVE WITH FIXES (no CRITICAL/HIGH). Fixes applied (commit 23234a4): audit
+bound to the envguard env header, per-row env/schema_version and DDL/trigger checks, no silent
+trigger re-creation, actor restricted; redaction of quoted values and Authorization/Bearer/cookie/
+credential/api-key forms; FakeBroker rejections 10014/10015/10016/10019/10025 with no state change,
+last_error reset per call, integer ms; round_budget floors negatives; to_decimal refuses volume_step
+for non-VOLUME; complex YAML key gives ConfigError; magic_engine != magic_guardian; CI actions and
+pre-commit hooks pinned to commit SHAs, `uv sync --locked`; .gitignore covers secrets and sqlite.
+Re-review (ecc:code-reviewer, fresh): APPROVE WITH FIXES, then the dropped `audit_log` table is
+refused (commit 519a1c1), then **APPROVE**.
+Rejected with reason: normalising `parse_decimal("-0")` to 0 (test_money requires exact round-trip
+of stored values; GOV-002).
+Accepted limits (recorded): audit tail truncation and deletion of table plus marker (M8 anchor);
+unquoted multi-word `password=two words` leaks the second word; SNTP is unauthenticated (broker
+server time and the Guardian cross-check remain independent checks); NTP DNS resolution is not
+bounded by the socket timeout; `Cookie: a=b; c=d` redacts only the first pair.
+
+**Traceability:** DATA-005 is VERIFIED (tests/unit/test_envguard.py and the DATA-005 cases in
+tests/unit/test_audit.py; commit 519a1c1). Requirements whose acceptance spans later milestones
+(TIME-0xx M1-M2, SEC-0xx M1/M8, RISK-020..025 M3, DATA-010/011/022) keep their status. M1 tests
+covering them: test_convert/money/rounding plus property and golden (RISK-020..025);
+test_clock/test_ntp/test_naive_datetime_ban (TIME-010/011/015); test_logs/test_redaction/
+test_secrets (SEC-001/004); test_audit/test_audit_tamper (SEC-022, PRV-013); test_schema_sync
+(DATA-010/011); test_config/test_phase0/test_cli_doctor (RISK-005/066/090/092, EXE-070, TIME-010).
