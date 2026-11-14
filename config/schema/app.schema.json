@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GoldBot application settings (config/app.yaml)",
+  "description": "Non-risk settings only (M0b NB8). Every risk number lives in config/risk_limits.yaml. No secret belongs here (SEC-001); unknown keys are refused.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "env", "fixture_demo", "fixture_demo_mode", "paths", "api", "mt5", "ntp", "llm", "mcp"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "env": {
+      "description": "DATA-005.",
+      "enum": ["LIVE", "DEMO", "BACKTEST", "REPLAY"]
+    },
+    "fixture_demo": {
+      "description": "RISK-066. true with env LIVE is refused at startup.",
+      "type": "boolean"
+    },
+    "fixture_demo_mode": {
+      "description": "Entry authorization mode for one fixture-demo run (RISK-066 item 4); never a default (RISK-065).",
+      "enum": [null, "MANUAL_APPROVAL", "AUTO_ALL", "AUTO_APPROVED_STRATEGIES"]
+    },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["data_dir", "databases", "research_db", "research_store_dir", "logs_dir", "reports_dir"],
+      "properties": {
+        "data_dir": { "$ref": "#/$defs/path" },
+        "databases": {
+          "description": "One SQLite file per env (DATA-005).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["LIVE", "DEMO", "BACKTEST", "REPLAY"],
+          "properties": {
+            "LIVE": { "$ref": "#/$defs/path" },
+            "DEMO": { "$ref": "#/$defs/path" },
+            "BACKTEST": { "$ref": "#/$defs/path" },
+            "REPLAY": { "$ref": "#/$defs/path" }
+          }
+        },
+        "research_db": { "$ref": "#/$defs/path" },
+        "research_store_dir": { "$ref": "#/$defs/path" },
+        "logs_dir": { "$ref": "#/$defs/path" },
+        "reports_dir": { "$ref": "#/$defs/path" }
+      }
+    },
+    "api": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bind_host", "port"],
+      "properties": {
+        "bind_host": { "description": "Loopback only (API-001, ADR-013).", "const": "127.0.0.1" },
+        "port": {
+          "description": "Chosen by the user; null until set.",
+          "anyOf": [{ "type": "null" }, { "type": "integer", "minimum": 1024, "maximum": 65535 }]
+        }
+      }
+    },
+    "mt5": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["symbol", "magic_engine", "magic_guardian"],
+      "properties": {
+        "symbol": {
+          "description": "Picked by the user from the M2 discovery list (CENT-003); null until then.",
+          "anyOf": [{ "type": "null" }, { "type": "string", "minLength": 1, "maxLength": 64 }]
+        },
+        "magic_engine": { "$ref": "#/$defs/magic" },
+        "magic_guardian": { "$ref": "#/$defs/magic" }
+      }
+    },
+    "ntp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["servers"],
+      "properties": {
+        "servers": {
+          "description": "TIME-010 needs at least two; with fewer the clock check fails closed (not a schema error).",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Za-z0-9]([A-Za-z0-9.-]{0,252})$" }
+        }
+      }
+    },
+    "llm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "provider"],
+      "properties": {
+        "enabled": { "description": "LLM-004; advisory only (LLM-001).", "type": "boolean" },
+        "provider": { "anyOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] }
+      }
+    },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "description": "MCP-001..030; never a dependency of the engine.", "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "path": {
+      "description": "Relative paths resolve from the repository root.",
+      "type": "string",
+      "minLength": 1
+    },
+    "magic": {
+      "description": "MT5 magic number configured once by the user (EXE-022); null until set.",
+      "anyOf": [{ "type": "null" }, { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 }]
+    }
+  }
+}

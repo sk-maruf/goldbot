@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GoldBot session exceptions (config/session_exceptions.yaml)",
+  "description": "Holidays and one-off early closes entered by the user from broker announcements (EXE-080, EXE-085, TIME-040, A-59). Times are broker server time.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "exceptions"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "exceptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/exception" }
+    }
+  },
+  "$defs": {
+    "exception": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["date", "type", "source"],
+      "properties": {
+        "date": {
+          "description": "Trading date in broker server time, quoted YYYY-MM-DD.",
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date"
+        },
+        "type": { "enum": ["full_close", "early_close"] },
+        "close_time_server": {
+          "description": "Required for early_close (quoted HH:MM, 24 h); absent or null for full_close.",
+          "anyOf": [{ "type": "null" }, { "type": "string", "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$" }]
+        },
+        "source": { "description": "Audit trail only; no behaviour.", "type": "string", "minLength": 1 }
+      },
+      "if": { "properties": { "type": { "const": "early_close" } } },
+      "then": {
+        "required": ["close_time_server"],
+        "properties": { "close_time_server": { "type": "string" } }
+      },
+      "else": { "properties": { "close_time_server": { "type": "null" } } }
+    }
+  }
+}

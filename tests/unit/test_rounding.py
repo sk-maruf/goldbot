@@ -86,6 +86,11 @@ def test_is_on_grid_rejects_bad_grid() -> None:
         is_on_grid(D("1"), D("0"))
 
 
+def test_is_on_grid_rejects_float() -> None:
+    with pytest.raises(FloatOperation):
+        is_on_grid(4046.12, TICK)  # type: ignore[arg-type]
+
+
 # --- order prices: OFF_TICK unless opted in (RISK-022/025) -------------------------------------
 
 

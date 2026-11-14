@@ -146,6 +146,11 @@ def test_json_round_trip_exact() -> None:
     assert str(back.amount) == "10000.00"
 
 
+def test_json_round_trip_keeps_negative_zero() -> None:
+    m = Money(Decimal("-0.00"), "USC")
+    assert Money.from_json(m.to_json()).to_json() == {"amount": "-0.00", "currency": "USC"}
+
+
 def test_from_json_float_amount_raises_float_operation() -> None:
     with pytest.raises(FloatOperation):
         Money.from_json({"amount": 24.3, "currency": "USC"})
@@ -157,7 +162,9 @@ def test_from_json_non_string_amount_type_error(amount: object) -> None:
         Money.from_json({"amount": amount, "currency": "USC"})
 
 
-@pytest.mark.parametrize("amount", ["1E+2", " 1.00", "1.", ".5", "01.00", "+1.00", "NaN", "Infinity", "", "1" * 65])
+@pytest.mark.parametrize(
+    "amount", ["1E+2", " 1.00", "1.", ".5", "01.00", "+1.00", "NaN", "Infinity", "", "1" * 65]
+)
 def test_from_json_rejects_non_schema_strings(amount: str) -> None:
     with pytest.raises(ValueError, match="amount"):
         Money.from_json({"amount": amount, "currency": "USC"})

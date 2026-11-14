@@ -72,7 +72,9 @@ def scan(source: str, filename: str, *, sanctioned: bool = False) -> tuple[list[
         )
         if not is_ctor:
             continue
-        value = node.args[0] if node.args else next((k.value for k in node.keywords if k.arg == "value"), None)
+        value = (
+            node.args[0] if node.args else next((k.value for k in node.keywords if k.arg == "value"), None)
+        )
         if any(isinstance(a, ast.Starred) for a in node.args) or any(k.arg is None for k in node.keywords):
             violations.append(f"{where}: Decimal(*args/**kwargs) may carry a float")
         elif value is None or _is_safe_literal(value):

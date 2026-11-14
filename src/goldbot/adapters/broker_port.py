@@ -263,7 +263,9 @@ class BrokerPort(Protocol):
         """EXE-020. The result is evidence, never proof (EXE-001); ``None`` is UNKNOWN (EXE-013)."""
         ...
 
-    def orders_get(self, *, symbol: str | None = None, ticket: int | None = None) -> tuple[TradeOrder, ...] | None:
+    def orders_get(
+        self, *, symbol: str | None = None, ticket: int | None = None
+    ) -> tuple[TradeOrder, ...] | None:
         """EXE-014 reconciliation, CANCEL_PENDING confirmation (§8)."""
         ...
 

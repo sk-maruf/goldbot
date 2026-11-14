@@ -8,6 +8,7 @@ from goldbot.core.convert import (
     DECIMAL_CONTEXT,
     MONEY_MINOR_UNIT,
     ConversionError,
+    parse_decimal,
     require_decimal,
     to_decimal,
     to_mt5_float,
@@ -26,7 +27,7 @@ def test_context_traps_float_operation() -> None:
 
 def test_context_raises_on_decimal_from_float() -> None:
     with localcontext(DECIMAL_CONTEXT), pytest.raises(FloatOperation):
-        Decimal(1.1)  # the very construction RISK-020 forbids
+        Decimal(1.1)  # noqa: RUF032  # the very construction RISK-020 forbids
 
 
 def test_context_raises_on_mixed_float_comparison() -> None:
@@ -70,7 +71,19 @@ def test_volume_quantized_to_volume_step_decimals() -> None:
 
 @pytest.mark.parametrize(
     "bad",
-    [None, float("nan"), float("inf"), float("-inf"), "1.0", b"1", True, False, Decimal("1"), object(), [1.0]],
+    [
+        None,
+        float("nan"),
+        float("inf"),
+        float("-inf"),
+        "1.0",
+        b"1",
+        True,
+        False,
+        Decimal("1"),
+        object(),
+        [1.0],
+    ],
 )
 def test_rejects_none_nan_inf_and_non_numeric(bad: object) -> None:
     with pytest.raises(ConversionError):
@@ -101,6 +114,16 @@ def test_price_rejects_invalid_digits(digits: int) -> None:
 def test_volume_requires_positive_step(step: Decimal | None) -> None:
     with pytest.raises(ValueError, match="volume_step"):
         to_decimal(0.01, "VOLUME", volume_step=step)
+
+
+def test_volume_off_step_grid_rejected() -> None:
+    # RISK-020 step 4: a volume must be a multiple of volume_step.
+    with pytest.raises(ConversionError, match="volume_step"):
+        to_decimal(0.12, "VOLUME", volume_step=Decimal("0.05"))
+
+
+def test_volume_on_coarse_step_grid_accepted() -> None:
+    assert str(to_decimal(0.15, "VOLUME", volume_step=Decimal("0.05"))) == "0.15"
 
 
 def test_unknown_kind_rejected() -> None:
@@ -154,3 +177,38 @@ def test_require_decimal_other_types_raise_type_error(bad: object) -> None:
 def test_require_decimal_rejects_nan() -> None:
     with pytest.raises(ValueError, match="x"):
         require_decimal(Decimal("NaN"), "x")
+
+
+# --- parse_decimal: exact text -> Decimal for DATA-004 decimal strings -------------------------
+
+
+@pytest.mark.parametrize(
+    "text", ["0.050", "-24.30", "10000.00", "0", "-0.00", "123456789012345678901234567.8"]
+)
+def test_parse_decimal_is_exact_and_keeps_exponent_and_sign(text: str) -> None:
+    assert str(parse_decimal(text, "x")) == text
+
+
+def test_parse_decimal_float_raises_float_operation() -> None:
+    with pytest.raises(FloatOperation, match="x"):
+        parse_decimal(24.3, "x")
+
+
+@pytest.mark.parametrize("bad", [24, None, True, b"1.0"])
+def test_parse_decimal_non_string_type_error(bad: object) -> None:
+    with pytest.raises(TypeError, match="x"):
+        parse_decimal(bad, "x")
+
+
+@pytest.mark.parametrize(
+    "bad", ["1E+2", "1.", ".5", "01", "+1", "NaN", "", "1" * 65, "1,0", "\N{ARABIC-INDIC DIGIT ONE}"]
+)
+def test_parse_decimal_rejects_non_schema_strings(bad: str) -> None:
+    with pytest.raises(ValueError, match="x"):
+        parse_decimal(bad, "x")
+
+
+def test_parse_decimal_rejects_more_digits_than_context_precision() -> None:
+    # 29 significant digits cannot be held exactly at prec=28: fail closed, never round.
+    with pytest.raises(ValueError, match="x"):
+        parse_decimal("1234567890123456789012345678.9", "x")

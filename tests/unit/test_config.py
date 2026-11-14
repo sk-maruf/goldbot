@@ -105,6 +105,17 @@ def test_app_schema_refuses(tmp_path, old, new):
         config.load_app_config(_write(tmp_path, "app.yaml", text.replace(old, new, 1)))
 
 
+def test_app_refuses_equal_engine_and_guardian_magic(tmp_path):
+    # EXE-022 / EXP-009: engine and Guardian orders must be told apart by magic number.
+    text = APP_EXAMPLE.read_text(encoding="utf-8")
+    text = text.replace("magic_engine: null", "magic_engine: 7001", 1)
+    distinct = text.replace("magic_guardian: null", "magic_guardian: 7002", 1)
+    config.load_app_config(_write(tmp_path, "app.yaml", distinct))
+    same = text.replace("magic_guardian: null", "magic_guardian: 7001", 1)
+    with pytest.raises(ConfigError, match="magic"):
+        config.load_app_config(_write(tmp_path, "app.yaml", same))
+
+
 def test_app_config_exposes_env_and_db_paths(tmp_path):
     app = config.load_app_config(APP_EXAMPLE, root=tmp_path)
     assert app.env == "DEMO"
@@ -230,7 +241,9 @@ def test_null_value_has_no_setting():
 # ---- Decimal conversion: str -> Decimal, never float -----------------------------------------
 
 
-@pytest.mark.parametrize(("raw", "expected"), [("0.25", Decimal("0.25")), (200, Decimal(200)), ("-1", Decimal(-1))])
+@pytest.mark.parametrize(
+    ("raw", "expected"), [("0.25", Decimal("0.25")), (200, Decimal(200)), ("-1", Decimal(-1))]
+)
 def test_as_decimal(raw, expected):
     assert config.as_decimal(raw) == expected
 

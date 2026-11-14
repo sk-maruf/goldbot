@@ -66,4 +66,6 @@ def test_distinct_db_paths_have_no_problems(tmp_path):
 
 
 def test_db_path_for_every_env_is_required(tmp_path):
-    assert any("REPLAY" in p for p in envguard.db_path_problems({"LIVE": tmp_path / "l", "DEMO": tmp_path / "d"}))
+    assert any(
+        "REPLAY" in p for p in envguard.db_path_problems({"LIVE": tmp_path / "l", "DEMO": tmp_path / "d"})
+    )
