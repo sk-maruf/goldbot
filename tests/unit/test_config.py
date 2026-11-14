@@ -273,3 +273,9 @@ def test_config_hashes_are_written_to_audit_log():
     assert event == "CONFIG_LOADED"
     assert actor == "engine"
     assert payload == {"risk_limits.yaml": risk.sha256, "app.example.yaml": app.sha256}
+
+
+def test_unhashable_yaml_key_is_a_config_error(tmp_path):
+    # A complex key must fail as ConfigError (doctor reports FAIL), not crash with TypeError.
+    with pytest.raises(ConfigError):
+        config.load_app_config(_write(tmp_path, "app.yaml", "? [a]\n: 1\n"))

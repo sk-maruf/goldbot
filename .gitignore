@@ -15,3 +15,11 @@ reports/
 *.db-wal
 *.db-shm
 node_modules/
+
+# Secrets and local databases must never be committed (SEC-001..007, DATA-005)
+.env*
+*.pem
+*.key
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm

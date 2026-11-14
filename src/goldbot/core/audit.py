@@ -20,12 +20,12 @@ from pathlib import Path
 from typing import Self, cast
 
 from goldbot.core.clock import Clock, format_utc
+from goldbot.envguard import open_db
 
 SCHEMA_VERSION = "1.0.0"
 GENESIS_PREV_HASH: str | None = None
-ENVS = frozenset({"LIVE", "DEMO", "BACKTEST", "REPLAY"})
 _EVENT = re.compile(r"[A-Z][A-Z0-9_]{0,63}")
-_ACTOR = re.compile(r"[^\x00-\x1f\x7f]{1,128}")
+_ACTOR = re.compile(r"[A-Za-z0-9_.:-]{1,128}")  # stricter than the schema: no free text, so no secrets
 _COLUMNS = ("schema_version", "env", "seq", "ts", "actor", "event", "payload_hash", "prev_hash", "hash")
 _SELECT = (
     "SELECT schema_version, env, seq, ts, actor, event, payload_hash, prev_hash, hash"
@@ -36,8 +36,9 @@ _INSERT = (
     " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
 )
 
+_STORE_OBJECTS = "SELECT type, name, sql FROM sqlite_master WHERE tbl_name = 'audit_log' ORDER BY name"
 _DDL = """
-CREATE TABLE IF NOT EXISTS audit_log (
+CREATE TABLE audit_log (
     id INTEGER PRIMARY KEY,
     schema_version TEXT NOT NULL,
     env TEXT NOT NULL,
@@ -49,9 +50,9 @@ CREATE TABLE IF NOT EXISTS audit_log (
     prev_hash TEXT,
     hash TEXT NOT NULL
 );
-CREATE TRIGGER IF NOT EXISTS audit_log_no_update BEFORE UPDATE ON audit_log
+CREATE TRIGGER audit_log_no_update BEFORE UPDATE ON audit_log
 BEGIN SELECT RAISE(ABORT, 'audit_log is append-only'); END;
-CREATE TRIGGER IF NOT EXISTS audit_log_no_delete BEFORE DELETE ON audit_log
+CREATE TRIGGER audit_log_no_delete BEFORE DELETE ON audit_log
 BEGIN SELECT RAISE(ABORT, 'audit_log is append-only'); END;
 """
 
@@ -59,9 +60,22 @@ AuditRecord = dict[str, str | int | None]
 
 
 class AuditChainError(Exception):
-    def __init__(self, index: int, reason: str) -> None:
-        super().__init__(f"audit chain broken at index {index}: {reason}")
+    """``index`` is the first bad record, or None when the store itself (table, triggers) was altered."""
+
+    def __init__(self, index: int | None, reason: str) -> None:
+        where = "the store" if index is None else f"index {index}"
+        super().__init__(f"audit chain broken at {where}: {reason}")
         self.index = index
+
+
+def _expected_store() -> list[tuple[str, str, str | None]]:
+    """The audit_log table and triggers exactly as _DDL creates them, built in a scratch database."""
+    con = sqlite3.connect(":memory:")
+    try:
+        con.executescript(_DDL)
+        return con.execute(_STORE_OBJECTS).fetchall()
+    finally:
+        con.close()
 
 
 def _check_json(value: object) -> None:
@@ -91,18 +105,13 @@ def _sha256(value: object) -> str:
 
 class AuditLog:
     def __init__(self, path: Path | str, env: str, clock: Clock) -> None:
-        if env not in ENVS:
-            raise ValueError(f"unknown env {env!r}")
+        """Opens through envguard.open_db: the file's env header must match ``env`` (DATA-005)."""
         self._env = env
         self._clock = clock
-        self._con = sqlite3.connect(path, isolation_level=None)
-        self._con.execute("PRAGMA journal_mode=WAL")
-        self._con.execute("PRAGMA synchronous=FULL")
-        self._con.executescript(_DDL)
-        first = self._con.execute("SELECT env FROM audit_log ORDER BY id LIMIT 1").fetchone()
-        if first is not None and first[0] != env:
-            self.close()
-            raise ValueError(f"audit log env is {first[0]}, not {env} (DATA-005)")
+        self._con = open_db(env, Path(path))
+        self._con.isolation_level = None  # explicit BEGIN IMMEDIATE / COMMIT in append()
+        if not self._con.execute(_STORE_OBJECTS).fetchall():  # fresh store only: never heal a tampered one
+            self._con.executescript(_DDL)
 
     def close(self) -> None:
         self._con.close()
@@ -146,9 +155,13 @@ class AuditLog:
 
     def verify_chain(self) -> bool:
         """True if intact; otherwise raise AuditChainError with the first bad index."""
+        if self._con.execute(_STORE_OBJECTS).fetchall() != _expected_store():
+            raise AuditChainError(None, "audit_log table or its append-only triggers were altered")
         prev_hash = GENESIS_PREV_HASH
         for index, record in enumerate(self.records()):
             body = {k: v for k, v in record.items() if k != "hash"}
+            if (record["env"], record["schema_version"]) != (self._env, SCHEMA_VERSION):
+                raise AuditChainError(index, f"env/schema_version {record['env']}/{record['schema_version']}")
             if record["seq"] != index:
                 raise AuditChainError(index, f"seq {record['seq']} out of place")
             if record["prev_hash"] != prev_hash:

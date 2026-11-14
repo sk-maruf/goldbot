@@ -70,6 +70,8 @@ def to_decimal(
     volume_step: Decimal | None = None,
 ) -> Decimal:
     """Convert one MT5 number to Decimal and quantize it by `kind` (RISK-020)."""
+    if volume_step is not None and kind != "VOLUME":
+        raise ValueError(f"volume_step applies to VOLUME only, not {kind}")
     if kind == "PRICE":
         if not isinstance(digits, int) or isinstance(digits, bool) or digits < 0:
             raise ValueError(f"PRICE needs digits >= 0, got {digits!r}")
@@ -111,7 +113,7 @@ def parse_decimal(text: object, name: str) -> Decimal:
         d = _exact(int(whole + fraction)).scaleb(-len(fraction), context=_EXACT_CONTEXT)
     except Inexact as exc:
         raise ValueError(f"{name}: more than {DECIMAL_CONTEXT.prec} significant digits") from exc
-    return d.copy_negate() if sign else d
+    return d.copy_negate() if sign else d  # keeps "-0" so stored values round-trip exactly
 
 
 def to_mt5_float(d: Decimal) -> float:

@@ -5,7 +5,8 @@ shaping and redaction processors. Redaction removes:
 
 * every registered secret value (and its ``repr``/JSON-escaped forms) from all keys, values,
   nested containers, the event text and exception text;
-* assignment patterns such as ``password=...``, ``token: ...``, ``api_key=...``;
+* assignment patterns such as ``password=...``, ``token: ...``, ``api_key=...`` (a quoted value is
+  removed whole, spaces included), ``Authorization: <scheme> <credentials>`` and ``Bearer <token>``;
 * the whole value of a sensitive field (name containing pass, secret, token, key, auth, cookie or
   credential). This is stricter than SEC-004's "16+ char base64/hex runs in sensitive fields".
 """
@@ -27,7 +28,11 @@ from goldbot.core.clock import Clock, format_utc
 
 REDACTED = "[REDACTED]"
 
-_ASSIGNMENT = re.compile(r"(?i)(password|passwd|secret|token|key)([\"']?\s*[=:]\s*[\"']?)[^\s,;&\"']+")
+_KEYWORDS = r"password|passwd|secret|token|api[_-]?key|key|authorization|bearer|credential|cookie"
+# A quoted value is taken whole (it may contain spaces); an unquoted one runs to a delimiter.
+_ASSIGNMENT = re.compile(rf"(?i)({_KEYWORDS})([\"']?\s*[=:]\s*)(\"[^\"]*\"|'[^']*'|[^\s,;&\"']+)")
+_AUTH_HEADER = re.compile(r"(?i)\b(authorization\s*:\s*)\S+(?:\s+\S+)?")  # scheme + credentials
+_BEARER = re.compile(r"(?i)\b(bearer\s+)\S+")
 _SENSITIVE_FIELD = re.compile(r"(?i)pass|secret|token|key|auth|cookie|credential")
 _LEVELS = {"warning": "WARN", "exception": "ERROR", "fatal": "CRITICAL", "msg": "INFO"}
 _STRUCTLOG_KEYS = ("_record", "_from_structlog")
@@ -52,6 +57,8 @@ def _redact_text(text: str) -> str:
     pattern = _secret_pattern
     if pattern is not None:
         text = pattern.sub(REDACTED, text)
+    text = _AUTH_HEADER.sub(lambda m: m.group(1) + REDACTED, text)
+    text = _BEARER.sub(lambda m: m.group(1) + REDACTED, text)
     return _ASSIGNMENT.sub(lambda m: m.group(1) + m.group(2) + REDACTED, text)
 
 

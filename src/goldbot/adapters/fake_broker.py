@@ -14,6 +14,13 @@ ILLUSTRATIVE. It encodes beliefs about broker behaviour, never evidence (ADR-006
 * There is no idempotency: the same request sent twice fills twice (EXE-002).
 * ``order_calc_profit``/``order_calc_margin`` use ILLUSTRATIVE formulas from the profile's tick
   size, tick value and leverage, rounded to 2 digits; real MT5 uses the symbol's calc mode.
+
+``order_check`` and ``order_send`` validate (beliefs about MT5, verify in M2; GOV-003), with no state
+change on reject: symbol (10013), session (10018), action (10013), volume grid/min/max and close volume
+above the position (10014), off-tick price (10015), SL/TP off-tick, on the wrong side or inside
+``trade_stops_level`` (10016), margin above free margin (10019), unchanged SLTP (10025), missing
+position (10036). Not validated: freeze level, pending orders, requotes/deviation, disconnects.
+Scripted replies bypass validation.
 """
 
 from __future__ import annotations
@@ -23,7 +30,7 @@ import random
 from collections import deque
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
@@ -38,7 +45,12 @@ from goldbot.adapters.broker_port import (
     TRADE_RETCODE_DONE,
     TRADE_RETCODE_DONE_PARTIAL,
     TRADE_RETCODE_INVALID,
+    TRADE_RETCODE_INVALID_PRICE,
+    TRADE_RETCODE_INVALID_STOPS,
+    TRADE_RETCODE_INVALID_VOLUME,
     TRADE_RETCODE_MARKET_CLOSED,
+    TRADE_RETCODE_NO_CHANGES,
+    TRADE_RETCODE_NO_MONEY,
     TRADE_RETCODE_POSITION_CLOSED,
     AccountInfo,
     OrderCheckResult,
@@ -58,6 +70,8 @@ _NO_ERROR = (1, "Success")
 _ERR_TIMEOUT = (-10005, "IPC timeout")
 _ERR_INVALID_PARAMS = (-2, "Invalid params")
 _DAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+_EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
+_MS = timedelta(milliseconds=1)
 
 
 @dataclass(frozen=True)
@@ -176,6 +190,7 @@ class FakeBroker:
     # --- BrokerPort: trading ---------------------------------------------------------------------
 
     def order_check(self, request: TradeRequest) -> OrderCheckResult | None:
+        self._error = _NO_ERROR
         reply = self._next("order_check")
         if isinstance(reply, Timeout):
             return self._timeout()
@@ -192,6 +207,7 @@ class FakeBroker:
         )
 
     def order_send(self, request: TradeRequest) -> OrderSendResult | None:
+        self._error = _NO_ERROR
         reply = self._next("order_send")
         if isinstance(reply, Reject):
             return self._result(request, reply.retcode)
@@ -243,10 +259,75 @@ class FakeBroker:
             return TRADE_RETCODE_INVALID
         if not self._market_open():
             return TRADE_RETCODE_MARKET_CLOSED
-        if request.get("action") not in (TRADE_ACTION_DEAL, TRADE_ACTION_SLTP):
+        action = request.get("action")
+        if action == TRADE_ACTION_SLTP:
+            return self._check_sltp(request)
+        if action != TRADE_ACTION_DEAL:
             # shortcut: pending orders / removal are not simulated; add them with their first user (M7).
             return TRADE_RETCODE_INVALID
+        if request.get("position"):
+            return self._check_close(request)
+        return self._check_open(request)
+
+    def _check_open(self, request: TradeRequest) -> int:
+        side, volume = request.get("type", ORDER_TYPE_BUY), request.get("volume", 0.0)
+        price = request.get("price")
+        if not self._volume_ok(volume):
+            return TRADE_RETCODE_INVALID_VOLUME
+        # belief (GOV-003): verify in M2 - market execution accepts a missing price, rejects an off-tick one
+        if price is not None and not self._on_grid(price, self._symbol.trade_tick_size):
+            return TRADE_RETCODE_INVALID_PRICE
+        stops = self._check_stops(side, request.get("sl", 0.0), request.get("tp", 0.0))
+        if stops:
+            return stops
+        tick = self._ticks[-1]
+        required = self._margin(side, volume, tick.ask if side == ORDER_TYPE_BUY else tick.bid)
+        account = self.account_info()
+        assert account is not None
+        return TRADE_RETCODE_NO_MONEY if required > account.margin_free else 0
+
+    def _check_close(self, request: TradeRequest) -> int:
+        pos = self._live_position(request.get("position", 0))
+        if pos is None:
+            return TRADE_RETCODE_POSITION_CLOSED
+        volume = request.get("volume", 0.0)
+        if not self._volume_ok(volume) or volume > pos.volume:
+            return TRADE_RETCODE_INVALID_VOLUME
         return 0
+
+    def _check_sltp(self, request: TradeRequest) -> int:
+        pos = self._live_position(request.get("position", 0))
+        if pos is None:
+            return TRADE_RETCODE_POSITION_CLOSED
+        sl, tp = request.get("sl", 0.0), request.get("tp", 0.0)
+        if (sl, tp) == (pos.sl, pos.tp):
+            return TRADE_RETCODE_NO_CHANGES
+        return self._check_stops(pos.type, sl, tp)
+
+    def _check_stops(self, side: int, sl: float, tp: float) -> int:
+        # belief (GOV-003): verify in M2 - MQL5 "Requirements and Limitations": SL/TP are checked against
+        # the closing side (bid for BUY, ask for SELL), strictly on the correct side and at least
+        # trade_stops_level points away. Freeze level is not checked.
+        s, tick = self._symbol, self._ticks[-1]
+        ref = tick.bid if side == ORDER_TYPE_BUY else tick.ask
+        sign = 1 if side == ORDER_TYPE_BUY else -1
+        min_gap = s.trade_stops_level * s.point
+        for level, below in ((sl, True), (tp, False)):
+            if not level:
+                continue
+            gap = (ref - level) * sign if below else (level - ref) * sign
+            if not self._on_grid(level, s.trade_tick_size) or gap <= 0 or gap < min_gap - s.point / 2:
+                return TRADE_RETCODE_INVALID_STOPS
+        return 0
+
+    def _volume_ok(self, volume: float) -> bool:
+        s = self._symbol
+        return s.volume_min <= volume <= s.volume_max and self._on_grid(volume, s.volume_step)
+
+    @staticmethod
+    def _on_grid(value: float, step: float) -> bool:
+        units = value / step
+        return abs(units - round(units)) < 1e-6
 
     def _open(self, request: TradeRequest, fill: float | None, delay_ms: int) -> OrderSendResult:
         side = request.get("type", ORDER_TYPE_BUY)
@@ -281,7 +362,7 @@ class FakeBroker:
             return self._result(request, TRADE_RETCODE_POSITION_CLOSED)
         tick = self._ticks[-1]
         price = tick.bid if pos.type == ORDER_TYPE_BUY else tick.ask
-        volume = min(request.get("volume", pos.volume), pos.volume)
+        volume = request.get("volume", 0.0)
         profit = self._profit(pos.type, volume, pos.price_open, price)
         side, magic, comment = 1 - pos.type, request.get("magic", 0), self._comment(request)
         now, visible = self._server_ms(self._clock.utc_now()), self._clock.monotonic_ns()
@@ -335,10 +416,9 @@ class FakeBroker:
         return self._ticket
 
     def _known(self, symbol: str) -> bool:
-        if symbol != self._symbol.name:
-            self._error = _ERR_INVALID_PARAMS
-            return False
-        return True
+        # belief (GOV-003): verify in M2 - last_error is reset by each call, not sticky
+        self._error = _NO_ERROR if symbol == self._symbol.name else _ERR_INVALID_PARAMS
+        return symbol == self._symbol.name
 
     def _comment(self, request: TradeRequest) -> str:
         comment, max_len = request.get("comment", ""), self._profile.get("comment_max_len")
@@ -368,7 +448,7 @@ class FakeBroker:
 
     def _server_ms(self, at: datetime) -> int:
         shifted = at + timedelta(minutes=self._profile["server_offset_minutes"])
-        return int(shifted.timestamp() * 1000)
+        return (shifted - _EPOCH) // _MS  # integer arithmetic: float timestamps lose milliseconds
 
     def _market_open(self) -> bool:
         now = self._server_now()

@@ -116,6 +116,15 @@ def test_sec_004_stdlib_logging_path_is_shaped_and_redacted(stream: io.StringIO)
         "token = 'hunter2'",
         '{"secret": "hunter2"}',
         "dsn?user=a&passwd=hunter2&x=1",
+        'password="my pass phrase hunter2"',
+        "secret: 'phrase hunter2 here'",
+        '{"api-key": "two words hunter2"}',
+        "Authorization: Bearer hunter2",
+        "authorization: Basic hunter2",
+        "sent bearer hunter2 to the api",
+        "credential=hunter2",
+        "cookie: hunter2",
+        "apikey=hunter2",
     ],
 )
 def test_sec_004_assignment_patterns_are_redacted(text: str) -> None:

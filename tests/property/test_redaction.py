@@ -13,7 +13,7 @@ from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from goldbot.core.clock import FakeClock
-from goldbot.core.logs import REDACTED, configure_logging, register_secret
+from goldbot.core.logs import REDACTED, configure_logging, redact, register_secret
 
 # Brackets excluded so a secret cannot straddle the "[REDACTED]" marker it is replaced by.
 SECRET_CHARS = string.ascii_letters + string.digits + "!#$%&()*+,-./:;<=>?@^_`{|}~'\" \\"
@@ -78,3 +78,36 @@ def test_sec_004_registered_secret_never_appears_in_any_log_path(
     forms = {secret, repr(secret)[1:-1]}  # also the escaped form shown by repr(), e.g. in KeyError text
     for line in raw.splitlines():
         assert not [s for s in strings_in(json.loads(line)) for f in forms if f in s]
+
+
+FORMS = [
+    'password="{v}"',
+    "password='{v}'",
+    'secret: "{v}"',
+    '{{"api_key": "{v}"}}',
+    "Authorization: Bearer {w}",
+    "AUTHORIZATION: {w}",
+    "header bearer {w} sent",
+    "token={w}&next=1",
+    "cookie: {w}",
+    "credential = {w}",
+]
+WORDS = string.ascii_letters + string.digits + "-._~+/="
+
+
+@settings(max_examples=300, deadline=None)
+@given(
+    form=st.sampled_from(FORMS),
+    phrase=st.text(alphabet=WORDS + " ", min_size=8, max_size=40).filter(lambda s: s.strip()),
+    word=st.text(alphabet=WORDS, min_size=8, max_size=40),
+    prefix=st.text(alphabet=string.ascii_letters + " ", max_size=10),
+)
+def test_sec_004_values_in_credential_patterns_never_survive(
+    form: str, phrase: str, word: str, prefix: str
+) -> None:
+    text = prefix + " " + form.format(v=phrase, w=word)
+    value = phrase if "{v}" in form else word
+    assume(value not in form.format(v="", w="") and value not in prefix)  # the value must be the only carrier
+    clean = redact(text)
+    assert isinstance(clean, str)
+    assert value not in clean, (text, clean)

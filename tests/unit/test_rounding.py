@@ -184,3 +184,9 @@ def test_money_rounding_keeps_currency_and_exact_minor_unit() -> None:
     got = round_budget(Money(D("25"), "USD"))
     assert got.currency == "USD"
     assert str(got.amount) == "25.00"
+
+
+def test_round_budget_floors_negative_amounts():
+    # A budget never rounds toward a larger value; -0.005 must not become 0.00.
+    assert round_budget(Money(Decimal("-0.005"), "USC")) == Money(Decimal("-0.01"), "USC")
+    assert round_budget(Money(Decimal("0.019"), "USC")) == Money(Decimal("0.01"), "USC")

@@ -369,3 +369,107 @@ def test_same_seed_and_script_give_identical_results() -> None:
 
 def test_different_seeds_give_different_tickets() -> None:
     assert _run(7) != _run(8)
+
+
+# --- request validation (beliefs about MT5, verify in M2; GOV-003) -----------------------------
+
+
+def assert_rejected(broker: FakeBroker, clock: FakeClock, request: bp.TradeRequest, retcode: int) -> None:
+    before = broker.positions_get()
+    check, send = broker.order_check(request), broker.order_send(request)
+    assert check is not None and check.retcode == retcode
+    assert send is not None and (send.retcode, send.order, send.deal) == (retcode, 0, 0)
+    assert broker.positions_get() == before  # no state change on reject
+    assert len(broker.history_deals_get(*window(clock)) or ()) == len(before or ())
+
+
+@pytest.mark.parametrize("volume", [0.015, 0.005, 0.0, 200.01])  # off the step grid, < min, 0, > max
+def test_bad_volume_is_rejected_invalid_volume(volume: float) -> None:
+    broker, clock = make()
+    assert_rejected(broker, clock, buy(volume), bp.TRADE_RETCODE_INVALID_VOLUME)
+
+
+def test_close_volume_above_the_position_volume_is_rejected_not_clipped() -> None:
+    broker, clock = make()
+    opened = broker.order_send(buy())
+    assert opened is not None
+    assert_rejected(broker, clock, close(opened.order, 0.02), bp.TRADE_RETCODE_INVALID_VOLUME)
+    assert one(broker.positions_get()).volume == 0.01
+
+
+def test_off_tick_price_is_rejected_invalid_price() -> None:
+    broker, clock = make()
+    assert_rejected(broker, clock, buy() | {"price": 4070.305}, bp.TRADE_RETCODE_INVALID_PRICE)
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"sl": 4046.305},  # SL off the tick grid
+        {"tp": 4100.005},  # TP off the tick grid
+        {"sl": 4080.0},  # BUY SL above the price
+        {"tp": 4060.0},  # BUY TP below the price
+        {"type": bp.ORDER_TYPE_SELL, "price": 4070.0, "sl": 4060.0},  # SELL SL below the price
+    ],
+)
+def test_bad_stops_are_rejected_invalid_stops(change: dict[str, Any]) -> None:
+    broker, clock = make()
+    assert_rejected(broker, clock, buy() | change, bp.TRADE_RETCODE_INVALID_STOPS)  # type: ignore[arg-type]
+
+
+def test_stops_closer_than_the_stops_level_are_rejected() -> None:
+    clock = FakeClock(WED_OPEN)
+    data = load_profile(FIXTURES / "ILL-CENT.json")
+    data["symbol"] = data["symbol"] | {"trade_stops_level": 500}  # 500 points x 0.01 = $5.00
+    broker = FakeBroker(data, clock)
+    assert_rejected(broker, clock, buy() | {"sl": 4067.0}, bp.TRADE_RETCODE_INVALID_STOPS)  # $3 from bid
+    ok = broker.order_send(buy() | {"sl": 4064.0})  # $6 from bid
+    assert ok is not None and ok.retcode == bp.TRADE_RETCODE_DONE
+
+
+def test_margin_above_free_margin_is_rejected_no_money() -> None:
+    broker, clock = make()  # 200 lots need about 407,030 USC; free margin is 10,000 USC
+    assert_rejected(broker, clock, buy(200.0), bp.TRADE_RETCODE_NO_MONEY)
+
+
+def test_sltp_with_unchanged_stops_is_rejected_no_changes() -> None:
+    broker, _ = make()
+    opened = broker.order_send(buy())
+    assert opened is not None
+    same: bp.TradeRequest = {
+        "action": bp.TRADE_ACTION_SLTP, "symbol": "XAUUSDc", "position": opened.order,
+        "sl": 4046.3, "tp": 0.0,
+    }
+    result = broker.order_send(same)
+    assert result is not None and result.retcode == bp.TRADE_RETCODE_NO_CHANGES
+
+
+def test_sltp_on_the_wrong_side_is_rejected_and_keeps_the_stop() -> None:
+    broker, _ = make()
+    opened = broker.order_send(buy())
+    assert opened is not None
+    wrong: bp.TradeRequest = {
+        "action": bp.TRADE_ACTION_SLTP, "symbol": "XAUUSDc", "position": opened.order,
+        "sl": 4075.0, "tp": 0.0,
+    }
+    result = broker.order_send(wrong)
+    assert result is not None and result.retcode == bp.TRADE_RETCODE_INVALID_STOPS
+    assert one(broker.positions_get()).sl == 4046.3
+
+
+def test_last_error_is_reset_by_the_next_call_after_a_timeout() -> None:
+    broker, _ = make()
+    broker.script("order_send", Timeout(executed=False))
+    assert broker.order_send(buy()) is None
+    assert broker.last_error()[0] != 1
+    assert broker.order_send(buy()) is not None
+    assert broker.last_error()[0] == 1
+
+
+def test_server_time_ms_uses_exact_integer_arithmetic() -> None:
+    # timestamp() * 1000 gives ...620 here: the float path loses the last millisecond
+    at = datetime(2038, 1, 30, 8, 31, 15, 621000, tzinfo=UTC)
+    broker, _ = make(at=at)
+    tick = broker.symbol_info_tick("XAUUSDc")
+    assert tick is not None
+    assert tick.time_msc == (at - datetime(1970, 1, 1, tzinfo=UTC)) // timedelta(milliseconds=1)

@@ -212,3 +212,9 @@ def test_parse_decimal_rejects_more_digits_than_context_precision() -> None:
     # 29 significant digits cannot be held exactly at prec=28: fail closed, never round.
     with pytest.raises(ValueError, match="x"):
         parse_decimal("1234567890123456789012345678.9", "x")
+
+
+@pytest.mark.parametrize("kind", ["PRICE", "MONEY"])
+def test_volume_step_is_refused_for_non_volume_kinds(kind):
+    with pytest.raises(ValueError, match="volume_step"):
+        to_decimal(1.0, kind, digits=2, volume_step=Decimal("0.01"))

@@ -6,6 +6,7 @@ edits the SQLite file directly.
 
 from __future__ import annotations
 
+import hashlib
 import sqlite3
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -13,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from goldbot.core.audit import AuditChainError, AuditLog
+from goldbot.core.audit import AuditChainError, AuditLog, canonical_json
 from goldbot.core.clock import FakeClock
 
 Row = dict[str, object]
@@ -26,6 +27,7 @@ def tamper(path: Path, edit: Callable[[list[Row]], list[Row]]) -> None:
     try:
         rows = [dict(r) for r in con.execute(f"SELECT {', '.join(COLUMNS)} FROM audit_log ORDER BY id")]
         rows = edit(rows)
+        triggers = [r[0] for r in con.execute("SELECT sql FROM sqlite_master WHERE type = 'trigger'")]
         con.execute("DROP TRIGGER audit_log_no_update")
         con.execute("DROP TRIGGER audit_log_no_delete")
         con.execute("DELETE FROM audit_log")
@@ -34,6 +36,8 @@ def tamper(path: Path, edit: Callable[[list[Row]], list[Row]]) -> None:
                 f"INSERT INTO audit_log ({', '.join(COLUMNS)}) VALUES ({', '.join('?' * len(COLUMNS))})",
                 [r[c] for c in COLUMNS],
             )
+        for sql in triggers:  # put the guards back exactly, so only the chain can tell
+            con.execute(sql)
         con.commit()
     finally:
         con.close()
@@ -51,7 +55,30 @@ def path(tmp_path: Path) -> Path:
     return path
 
 
-def expect_break(path: Path, index: int) -> None:
+def rehash_from(i: int) -> Callable[[list[Row]], list[Row]]:
+    """A smarter attacker: after editing row i, recompute every hash from i on so the links agree."""
+
+    def edit(rows: list[Row]) -> list[Row]:
+        prev = rows[i - 1]["hash"] if i else None
+        for row in rows[i:]:
+            row["prev_hash"] = prev
+            body = {k: v for k, v in row.items() if k != "hash"}
+            row["hash"] = prev = hashlib.sha256(canonical_json(body)).hexdigest()
+        return rows
+
+    return edit
+
+
+def both(*edits: Callable[[list[Row]], list[Row]]) -> Callable[[list[Row]], list[Row]]:
+    def edit(rows: list[Row]) -> list[Row]:
+        for e in edits:
+            rows = e(rows)
+        return rows
+
+    return edit
+
+
+def expect_break(path: Path, index: int | None) -> None:
     with AuditLog(path, "LIVE", FakeClock()) as log, pytest.raises(AuditChainError) as info:
         log.verify_chain()
     assert info.value.index == index
@@ -124,3 +151,36 @@ def test_truncated_tail_is_not_detectable_by_the_chain_alone(path: Path) -> None
     tamper(path, lambda rows: rows[:3])
     with AuditLog(path, "LIVE", FakeClock()) as log:
         assert log.verify_chain() is True
+
+
+@pytest.mark.parametrize(("field", "value"), [("env", "DEMO"), ("schema_version", "0.9.0")])
+def test_rehashed_record_with_foreign_env_or_schema_version_breaks_at_its_index(
+    path: Path, field: str, value: object
+) -> None:
+    tamper(path, both(set_field(3, field, value), rehash_from(3)))
+    expect_break(path, 3)
+
+
+def test_rehashed_suffix_without_semantic_change_still_verifies(path: Path) -> None:
+    """Control for the test above: the rehash helper alone yields a valid chain."""
+    tamper(path, rehash_from(3))
+    with AuditLog(path, "LIVE", FakeClock()) as log:
+        assert log.verify_chain() is True
+
+
+@pytest.mark.parametrize("trigger", ["audit_log_no_update", "audit_log_no_delete"])
+def test_dropped_append_only_trigger_is_reported(path: Path, trigger: str) -> None:
+    con = sqlite3.connect(path)
+    con.execute(f"DROP TRIGGER {trigger}")
+    con.commit()
+    con.close()
+    expect_break(path, None)
+
+
+def test_replaced_append_only_trigger_is_reported(path: Path) -> None:
+    con = sqlite3.connect(path)
+    con.execute("DROP TRIGGER audit_log_no_delete")
+    con.execute("CREATE TRIGGER audit_log_no_delete BEFORE DELETE ON audit_log BEGIN SELECT 1; END")
+    con.commit()
+    con.close()
+    expect_break(path, None)

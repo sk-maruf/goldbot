@@ -89,7 +89,11 @@ class _Loader(yaml.SafeLoader):
         seen: set[Any] = set()
         for key_node, _ in node.value:
             key = self.construct_object(key_node, deep=True)  # type: ignore[no-untyped-call]
-            if key in seen:
+            try:
+                duplicate = key in seen
+            except TypeError:  # unhashable (complex) key
+                raise ConfigError(f"unsupported complex key at line {key_node.start_mark.line + 1}") from None
+            if duplicate:
                 raise ConfigError(f"duplicate key {key!r} at line {key_node.start_mark.line + 1}")
             seen.add(key)
         return super().construct_mapping(node, deep)

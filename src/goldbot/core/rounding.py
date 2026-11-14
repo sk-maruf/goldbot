@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import ROUND_CEILING, ROUND_DOWN, ROUND_FLOOR, ROUND_HALF_EVEN, ROUND_UP, Decimal
+from decimal import ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_EVEN, ROUND_UP, Decimal
 from typing import Literal
 
 from goldbot.core.convert import DECIMAL_CONTEXT, MONEY_MINOR_UNIT, require_decimal
@@ -73,7 +73,8 @@ def _to_minor_unit(m: Money, rounding: str) -> Money:
 
 
 def round_budget(m: Money) -> Money:
-    return _to_minor_unit(m, ROUND_DOWN)
+    """Conservative: toward minus infinity, so a budget never rounds up (also for negatives)."""
+    return _to_minor_unit(m, ROUND_FLOOR)
 
 
 def round_loss(m: Money) -> Money:

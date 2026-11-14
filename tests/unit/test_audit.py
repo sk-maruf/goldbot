@@ -13,8 +13,10 @@ import pytest
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
 
+from goldbot import envguard
 from goldbot.core.audit import GENESIS_PREV_HASH, AuditChainError, AuditLog, canonical_json
 from goldbot.core.clock import FakeClock
+from goldbot.envguard import EnvMismatchError
 
 SCHEMAS = Path(__file__).resolve().parents[2] / "schemas"
 START = datetime(2026, 11, 14, 8, 0, tzinfo=UTC)
@@ -90,12 +92,12 @@ def test_data_005_opening_a_log_of_another_env_is_refused(tmp_path: Path, clock:
     path = tmp_path / "audit.db"
     with AuditLog(path, "DEMO", clock) as log:
         log.append("A", "engine", {})
-    with pytest.raises(ValueError, match="env"):
+    with pytest.raises(EnvMismatchError, match="env"):
         AuditLog(path, "LIVE", clock)
 
 
 def test_unknown_env_is_rejected(tmp_path: Path, clock: FakeClock) -> None:
-    with pytest.raises(ValueError, match="env"):
+    with pytest.raises(EnvMismatchError, match="env"):
         AuditLog(tmp_path / "a.db", "PROD", clock)
 
 
@@ -105,7 +107,9 @@ def test_event_type_must_match_the_schema_pattern(log: AuditLog, event: str) -> 
         log.append(event, "engine", {})
 
 
-@pytest.mark.parametrize("actor", ["", "a" * 129, "bad\nactor"])
+@pytest.mark.parametrize(
+    "actor", ["", "a" * 129, "bad\nactor", "user alice", "password=hunter2", "x/y", "é", "a\tb"]
+)
 def test_actor_must_match_the_schema(log: AuditLog, actor: str) -> None:
     with pytest.raises(ValueError, match="actor"):
         log.append("A", actor, {})
@@ -173,3 +177,29 @@ def test_failure_inside_append_rolls_back_and_the_log_stays_usable(tmp_path: Pat
         clock.broken = False
         assert log.append("B", "engine", {})["seq"] == 0
         assert log.verify_chain() is True
+
+
+@pytest.mark.parametrize("actor", ["engine", "user:alice", "guardian.ea-1", "risk_engine", "A" * 128])
+def test_actor_allows_identifier_characters_only(log: AuditLog, actor: str) -> None:
+    assert log.append("A", actor, {})["actor"] == actor
+
+
+def test_data_005_empty_db_with_another_env_header_is_refused(tmp_path: Path, clock: FakeClock) -> None:
+    path = tmp_path / "live.db"
+    envguard.open_db("LIVE", path).close()  # header only, zero audit rows
+    with pytest.raises(EnvMismatchError, match="LIVE"):
+        AuditLog(path, "DEMO", clock)
+
+
+def test_data_005_existing_file_without_env_header_is_refused(tmp_path: Path, clock: FakeClock) -> None:
+    path = tmp_path / "plain.db"
+    sqlite3.connect(path).close()
+    with pytest.raises(EnvMismatchError, match="header"):
+        AuditLog(path, "DEMO", clock)
+
+
+def test_data_005_new_audit_db_records_its_env_header(tmp_path: Path, clock: FakeClock) -> None:
+    path = tmp_path / "new.db"
+    with AuditLog(path, "REPLAY", clock):
+        pass
+    assert envguard.recorded_env(path) == "REPLAY"
