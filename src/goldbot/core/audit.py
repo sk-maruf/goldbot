@@ -37,6 +37,9 @@ _INSERT = (
 )
 
 _STORE_OBJECTS = "SELECT type, name, sql FROM sqlite_master WHERE tbl_name = 'audit_log' ORDER BY name"
+# Written once with the store, in envguard's header table, so a dropped table is not re-created as new.
+_MARKER_SELECT = "SELECT 1 FROM goldbot_meta WHERE key = 'audit_store'"
+_MARKER_INSERT = "INSERT INTO goldbot_meta (key, value) VALUES ('audit_store', 'created')"
 _DDL = """
 CREATE TABLE audit_log (
     id INTEGER PRIMARY KEY,
@@ -111,7 +114,10 @@ class AuditLog:
         self._con = open_db(env, Path(path))
         self._con.isolation_level = None  # explicit BEGIN IMMEDIATE / COMMIT in append()
         if not self._con.execute(_STORE_OBJECTS).fetchall():  # fresh store only: never heal a tampered one
-            self._con.executescript(_DDL)
+            if self._con.execute(_MARKER_SELECT).fetchone() is not None:
+                self._con.close()
+                raise AuditChainError(None, "audit_log is missing from a store that was created earlier")
+            self._con.executescript(f"BEGIN IMMEDIATE; {_DDL}; {_MARKER_INSERT}; COMMIT;")
 
     def close(self) -> None:
         self._con.close()

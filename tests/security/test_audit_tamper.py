@@ -184,3 +184,15 @@ def test_replaced_append_only_trigger_is_reported(path: Path) -> None:
     con.commit()
     con.close()
     expect_break(path, None)
+
+
+def test_dropped_audit_table_is_refused_not_silently_recreated(path: Path) -> None:
+    # Dropping the table (and with it its triggers) must not reopen as a fresh, clean, empty log.
+    con = sqlite3.connect(path)
+    con.execute("DROP TABLE audit_log")
+    con.commit()
+    con.close()
+    clock = FakeClock(datetime(2026, 11, 14, tzinfo=UTC))
+    with pytest.raises(AuditChainError) as info:
+        AuditLog(path, "LIVE", clock)
+    assert info.value.index is None
